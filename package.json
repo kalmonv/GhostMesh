@@ -39,7 +39,7 @@
     "test-without-tracker-start": "npm run test-node && npm run test-browser",
     "test": "start-server-and-test 'node start-trackers.js' 5001 test-without-tracker-start",
     "dev": "vite",
-    "build": "rm -rf dist && vite build"
+    "build": "rm -rf dist && vite build && node scripts/fix-browser-global.mjs"
   },
   "dependencies": {
     "bittorrent-tracker": "^11.2.2",

@@ -45,14 +45,29 @@ GhostMesh loads `@roamhq/wrtc` automatically when `start()` runs in Node.js.
 ### jsDelivr from GitHub
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/kalmonv/p2pt/dist/ghostmesh.iife.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/kalmonv/GhostMesh/dist/ghostmesh.iife.js"></script>
 ```
 
 ### jsDelivr from npm
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/ghostmesh@1.6.2/dist/ghostmesh.iife.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/ghostmesh@1.0.1/dist/ghostmesh.iife.js"></script>
 ```
+
+When using the IIFE build in the browser, the constructor is exposed directly as `window.GhostMesh`:
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/ghostmesh@1.0.1/dist/ghostmesh.iife.js"></script>
+<script>
+  const gmesh = new GhostMesh(['wss://tracker.openwebtorrent.com'], 'my-app')
+</script>
+```
+
+## Live Demo
+
+Try the interactive multi-peer chat and file transfer demo on CodePen:
+
+* [GhostMesh Demo on CodePen](https://codepen.io/kalmonv/pen/GgjQzga)
 
 ## Quick Start
 
@@ -450,14 +465,14 @@ git push
 After that, jsDelivr can serve:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/kalmonv/p2pt/dist/ghostmesh.iife.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/kalmonv/GhostMesh/dist/ghostmesh.iife.js"></script>
 ```
 
 ## More Docs
 
 More API detail is available in:
 
-* [api-docs.md](https://github.com/kalmonv/p2pt/blob/main/api-docs.md)
+* [api-docs.md](https://github.com/kalmonv/GhostMesh/blob/main/api-docs.md)
 
 ## Projects Built With P2PT / GhostMesh
 
