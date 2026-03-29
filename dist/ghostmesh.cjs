@@ -1,0 +1,1 @@
+"use strict";Object.defineProperties(exports,{__esModule:{value:!0},[Symbol.toStringTag]:{value:"Module"}});const e=require("./ghostmesh-g-Ed00D7.cjs");exports.FileSession=e.FileSession;exports.P2PT=e.GhostMesh;exports.default=e.GhostMesh;

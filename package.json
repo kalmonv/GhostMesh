@@ -1,0 +1,76 @@
+{
+  "name": "ghostmesh",
+  "version": "1.0.1",
+  "description": "GhostMesh is a WebRTC P2P messaging library with WebSocket tracker signaling, relay routing and onion-style multi-hop delivery",
+  "main": "./dist/ghostmesh.cjs",
+  "module": "./dist/ghostmesh.js",
+  "types": "./dist/ghostmesh.d.ts",
+  "unpkg": "./dist/ghostmesh.iife.js",
+  "jsdelivr": "./dist/ghostmesh.iife.js",
+  "type": "module",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "browser": "./dist/ghostmesh.js",
+      "node": "./dist/ghostmesh.js",
+      "types": "./dist/ghostmesh.d.ts",
+      "import": "./dist/ghostmesh.js",
+      "require": "./dist/ghostmesh.cjs"
+    },
+    "./dist": {
+      "types": "./dist/ghostmesh.d.ts",
+      "import": "./dist/ghostmesh.js",
+      "require": "./dist/ghostmesh.cjs"
+    },
+    "./iife": {
+      "types": "./dist/ghostmesh.d.ts",
+      "import": "./dist/ghostmesh.iife.js",
+      "require": "./dist/ghostmesh.iife.js"
+    }
+  },
+  "scripts": {
+    "trackers": "node start-trackers.js",
+    "test-browser": "echo 'Use \"npm run trackers, then npm run dev\" and open http://127.0.0.1:5173/test/index.html in browser'",
+    "test-node": "tsx test/node.js",
+    "test-without-tracker-start": "npm run test-node && npm run test-browser",
+    "test": "start-server-and-test 'node start-trackers.js' 5001 test-without-tracker-start",
+    "dev": "vite",
+    "build": "rm -rf dist && vite build"
+  },
+  "dependencies": {
+    "bittorrent-tracker": "^11.2.2",
+    "js-sha1": "^0.7.0",
+    "uint8-util": "^2.2.2"
+  },
+  "optionalDependencies": {
+    "@roamhq/wrtc": "^0.9.0"
+  },
+  "devDependencies": {
+    "start-server-and-test": "^2.0.0",
+    "tsx": "^4.20.3",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.1",
+    "vite-plugin-dts": "^4.5.4",
+    "vite-plugin-node-polyfills": "^0.24.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kalmonv/GhostMesh.git"
+  },
+  "keywords": [
+    "webtorrent",
+    "p2p",
+    "simple-peer",
+    "peer"
+  ],
+  "author": "kalmonv",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kalmonv/GhostMesh/issues"
+  },
+  "homepage": "https://github.com/kalmonv/GhostMesh#readme"
+}
