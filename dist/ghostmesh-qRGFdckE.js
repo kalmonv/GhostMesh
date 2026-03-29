@@ -1,0 +1,3477 @@
+var tt = typeof globalThis < "u" ? globalThis : typeof window < "u" ? window : typeof global < "u" ? global : typeof self < "u" ? self : {};
+function Fe(c) {
+  return c && c.__esModule && Object.prototype.hasOwnProperty.call(c, "default") ? c.default : c;
+}
+function ci(c) {
+  if (Object.prototype.hasOwnProperty.call(c, "__esModule")) return c;
+  var e = c.default;
+  if (typeof e == "function") {
+    var t = function n() {
+      var s = !1;
+      try {
+        s = this instanceof n;
+      } catch {
+      }
+      return s ? Reflect.construct(e, arguments, this.constructor) : e.apply(this, arguments);
+    };
+    t.prototype = e.prototype;
+  } else t = {};
+  return Object.defineProperty(t, "__esModule", { value: !0 }), Object.keys(c).forEach(function(n) {
+    var s = Object.getOwnPropertyDescriptor(c, n);
+    Object.defineProperty(t, n, s.get ? s : {
+      enumerable: !0,
+      get: function() {
+        return c[n];
+      }
+    });
+  }), t;
+}
+var Ce = { exports: {} }, He, Rt;
+function hi() {
+  if (Rt) return He;
+  Rt = 1;
+  var c = 1e3, e = c * 60, t = e * 60, n = t * 24, s = n * 7, r = n * 365.25;
+  He = function(v, d) {
+    d = d || {};
+    var R = typeof v;
+    if (R === "string" && v.length > 0)
+      return o(v);
+    if (R === "number" && isFinite(v))
+      return d.long ? _(v) : l(v);
+    throw new Error(
+      "val is not a non-empty string or a valid number. val=" + JSON.stringify(v)
+    );
+  };
+  function o(v) {
+    if (v = String(v), !(v.length > 100)) {
+      var d = /^(-?(?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|weeks?|w|years?|yrs?|y)?$/i.exec(
+        v
+      );
+      if (d) {
+        var R = parseFloat(d[1]), I = (d[2] || "ms").toLowerCase();
+        switch (I) {
+          case "years":
+          case "year":
+          case "yrs":
+          case "yr":
+          case "y":
+            return R * r;
+          case "weeks":
+          case "week":
+          case "w":
+            return R * s;
+          case "days":
+          case "day":
+          case "d":
+            return R * n;
+          case "hours":
+          case "hour":
+          case "hrs":
+          case "hr":
+          case "h":
+            return R * t;
+          case "minutes":
+          case "minute":
+          case "mins":
+          case "min":
+          case "m":
+            return R * e;
+          case "seconds":
+          case "second":
+          case "secs":
+          case "sec":
+          case "s":
+            return R * c;
+          case "milliseconds":
+          case "millisecond":
+          case "msecs":
+          case "msec":
+          case "ms":
+            return R;
+          default:
+            return;
+        }
+      }
+    }
+  }
+  function l(v) {
+    var d = Math.abs(v);
+    return d >= n ? Math.round(v / n) + "d" : d >= t ? Math.round(v / t) + "h" : d >= e ? Math.round(v / e) + "m" : d >= c ? Math.round(v / c) + "s" : v + "ms";
+  }
+  function _(v) {
+    var d = Math.abs(v);
+    return d >= n ? u(v, d, n, "day") : d >= t ? u(v, d, t, "hour") : d >= e ? u(v, d, e, "minute") : d >= c ? u(v, d, c, "second") : v + " ms";
+  }
+  function u(v, d, R, I) {
+    var P = d >= R * 1.5;
+    return Math.round(v / R) + " " + I + (P ? "s" : "");
+  }
+  return He;
+}
+var We, Ct;
+function ui() {
+  if (Ct) return We;
+  Ct = 1;
+  function c(e) {
+    n.debug = n, n.default = n, n.coerce = u, n.disable = l, n.enable = r, n.enabled = _, n.humanize = hi(), n.destroy = v, Object.keys(e).forEach((d) => {
+      n[d] = e[d];
+    }), n.names = [], n.skips = [], n.formatters = {};
+    function t(d) {
+      let R = 0;
+      for (let I = 0; I < d.length; I++)
+        R = (R << 5) - R + d.charCodeAt(I), R |= 0;
+      return n.colors[Math.abs(R) % n.colors.length];
+    }
+    n.selectColor = t;
+    function n(d) {
+      let R, I = null, P, B;
+      function F(...M) {
+        if (!F.enabled)
+          return;
+        const W = F, q = Number(/* @__PURE__ */ new Date()), E = q - (R || q);
+        W.diff = E, W.prev = R, W.curr = q, R = q, M[0] = n.coerce(M[0]), typeof M[0] != "string" && M.unshift("%O");
+        let m = 0;
+        M[0] = M[0].replace(/%([a-zA-Z%])/g, (C, T) => {
+          if (C === "%%")
+            return "%";
+          m++;
+          const a = n.formatters[T];
+          if (typeof a == "function") {
+            const h = M[m];
+            C = a.call(W, h), M.splice(m, 1), m--;
+          }
+          return C;
+        }), n.formatArgs.call(W, M), (W.log || n.log).apply(W, M);
+      }
+      return F.namespace = d, F.useColors = n.useColors(), F.color = n.selectColor(d), F.extend = s, F.destroy = n.destroy, Object.defineProperty(F, "enabled", {
+        enumerable: !0,
+        configurable: !1,
+        get: () => I !== null ? I : (P !== n.namespaces && (P = n.namespaces, B = n.enabled(d)), B),
+        set: (M) => {
+          I = M;
+        }
+      }), typeof n.init == "function" && n.init(F), F;
+    }
+    function s(d, R) {
+      const I = n(this.namespace + (typeof R > "u" ? ":" : R) + d);
+      return I.log = this.log, I;
+    }
+    function r(d) {
+      n.save(d), n.namespaces = d, n.names = [], n.skips = [];
+      const R = (typeof d == "string" ? d : "").trim().replace(/\s+/g, ",").split(",").filter(Boolean);
+      for (const I of R)
+        I[0] === "-" ? n.skips.push(I.slice(1)) : n.names.push(I);
+    }
+    function o(d, R) {
+      let I = 0, P = 0, B = -1, F = 0;
+      for (; I < d.length; )
+        if (P < R.length && (R[P] === d[I] || R[P] === "*"))
+          R[P] === "*" ? (B = P, F = I, P++) : (I++, P++);
+        else if (B !== -1)
+          P = B + 1, F++, I = F;
+        else
+          return !1;
+      for (; P < R.length && R[P] === "*"; )
+        P++;
+      return P === R.length;
+    }
+    function l() {
+      const d = [
+        ...n.names,
+        ...n.skips.map((R) => "-" + R)
+      ].join(",");
+      return n.enable(""), d;
+    }
+    function _(d) {
+      for (const R of n.skips)
+        if (o(d, R))
+          return !1;
+      for (const R of n.names)
+        if (o(d, R))
+          return !0;
+      return !1;
+    }
+    function u(d) {
+      return d instanceof Error ? d.stack || d.message : d;
+    }
+    function v() {
+      console.warn("Instance method `debug.destroy()` is deprecated and no longer does anything. It will be removed in the next major version of `debug`.");
+    }
+    return n.enable(n.load()), n;
+  }
+  return We = c, We;
+}
+var It;
+function li() {
+  return It || (It = 1, function(c, e) {
+    e.formatArgs = n, e.save = s, e.load = r, e.useColors = t, e.storage = o(), e.destroy = /* @__PURE__ */ (() => {
+      let _ = !1;
+      return () => {
+        _ || (_ = !0, console.warn("Instance method `debug.destroy()` is deprecated and no longer does anything. It will be removed in the next major version of `debug`."));
+      };
+    })(), e.colors = [
+      "#0000CC",
+      "#0000FF",
+      "#0033CC",
+      "#0033FF",
+      "#0066CC",
+      "#0066FF",
+      "#0099CC",
+      "#0099FF",
+      "#00CC00",
+      "#00CC33",
+      "#00CC66",
+      "#00CC99",
+      "#00CCCC",
+      "#00CCFF",
+      "#3300CC",
+      "#3300FF",
+      "#3333CC",
+      "#3333FF",
+      "#3366CC",
+      "#3366FF",
+      "#3399CC",
+      "#3399FF",
+      "#33CC00",
+      "#33CC33",
+      "#33CC66",
+      "#33CC99",
+      "#33CCCC",
+      "#33CCFF",
+      "#6600CC",
+      "#6600FF",
+      "#6633CC",
+      "#6633FF",
+      "#66CC00",
+      "#66CC33",
+      "#9900CC",
+      "#9900FF",
+      "#9933CC",
+      "#9933FF",
+      "#99CC00",
+      "#99CC33",
+      "#CC0000",
+      "#CC0033",
+      "#CC0066",
+      "#CC0099",
+      "#CC00CC",
+      "#CC00FF",
+      "#CC3300",
+      "#CC3333",
+      "#CC3366",
+      "#CC3399",
+      "#CC33CC",
+      "#CC33FF",
+      "#CC6600",
+      "#CC6633",
+      "#CC9900",
+      "#CC9933",
+      "#CCCC00",
+      "#CCCC33",
+      "#FF0000",
+      "#FF0033",
+      "#FF0066",
+      "#FF0099",
+      "#FF00CC",
+      "#FF00FF",
+      "#FF3300",
+      "#FF3333",
+      "#FF3366",
+      "#FF3399",
+      "#FF33CC",
+      "#FF33FF",
+      "#FF6600",
+      "#FF6633",
+      "#FF9900",
+      "#FF9933",
+      "#FFCC00",
+      "#FFCC33"
+    ];
+    function t() {
+      if (typeof window < "u" && window.process && (window.process.type === "renderer" || window.process.__nwjs))
+        return !0;
+      if (typeof navigator < "u" && navigator.userAgent && navigator.userAgent.toLowerCase().match(/(edge|trident)\/(\d+)/))
+        return !1;
+      let _;
+      return typeof document < "u" && document.documentElement && document.documentElement.style && document.documentElement.style.WebkitAppearance || // Is firebug? http://stackoverflow.com/a/398120/376773
+      typeof window < "u" && window.console && (window.console.firebug || window.console.exception && window.console.table) || // Is firefox >= v31?
+      // https://developer.mozilla.org/en-US/docs/Tools/Web_Console#Styling_messages
+      typeof navigator < "u" && navigator.userAgent && (_ = navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/)) && parseInt(_[1], 10) >= 31 || // Double check webkit in userAgent just in case we are in a worker
+      typeof navigator < "u" && navigator.userAgent && navigator.userAgent.toLowerCase().match(/applewebkit\/(\d+)/);
+    }
+    function n(_) {
+      if (_[0] = (this.useColors ? "%c" : "") + this.namespace + (this.useColors ? " %c" : " ") + _[0] + (this.useColors ? "%c " : " ") + "+" + c.exports.humanize(this.diff), !this.useColors)
+        return;
+      const u = "color: " + this.color;
+      _.splice(1, 0, u, "color: inherit");
+      let v = 0, d = 0;
+      _[0].replace(/%[a-zA-Z%]/g, (R) => {
+        R !== "%%" && (v++, R === "%c" && (d = v));
+      }), _.splice(d, 0, u);
+    }
+    e.log = console.debug || console.log || (() => {
+    });
+    function s(_) {
+      try {
+        _ ? e.storage.setItem("debug", _) : e.storage.removeItem("debug");
+      } catch {
+      }
+    }
+    function r() {
+      let _;
+      try {
+        _ = e.storage.getItem("debug") || e.storage.getItem("DEBUG");
+      } catch {
+      }
+      return !_ && typeof process < "u" && "env" in process && (_ = process.env.DEBUG), _;
+    }
+    function o() {
+      try {
+        return localStorage;
+      } catch {
+      }
+    }
+    c.exports = ui()(e);
+    const { formatters: l } = c.exports;
+    l.j = function(_) {
+      try {
+        return JSON.stringify(_);
+      } catch (u) {
+        return "[UnexpectedJSONParseError]: " + u.message;
+      }
+    };
+  }(Ce, Ce.exports)), Ce.exports;
+}
+var di = li();
+const Oe = /* @__PURE__ */ Fe(di), J = typeof window < "u" ? window : self, Ze = J.RTCPeerConnection || J.mozRTCPeerConnection || J.webkitRTCPeerConnection, fi = J.RTCSessionDescription || J.mozRTCSessionDescription || J.webkitRTCSessionDescription, _i = J.RTCIceCandidate || J.mozRTCIceCandidate || J.webkitRTCIceCandidate;
+var Ie = { exports: {} }, Tt;
+function Qt() {
+  if (Tt) return Ie.exports;
+  Tt = 1;
+  var c = typeof Reflect == "object" ? Reflect : null, e = c && typeof c.apply == "function" ? c.apply : function(m, g, C) {
+    return Function.prototype.apply.call(m, g, C);
+  }, t;
+  c && typeof c.ownKeys == "function" ? t = c.ownKeys : Object.getOwnPropertySymbols ? t = function(m) {
+    return Object.getOwnPropertyNames(m).concat(Object.getOwnPropertySymbols(m));
+  } : t = function(m) {
+    return Object.getOwnPropertyNames(m);
+  };
+  function n(E) {
+    console && console.warn && console.warn(E);
+  }
+  var s = Number.isNaN || function(m) {
+    return m !== m;
+  };
+  function r() {
+    r.init.call(this);
+  }
+  Ie.exports = r, Ie.exports.once = M, r.EventEmitter = r, r.prototype._events = void 0, r.prototype._eventsCount = 0, r.prototype._maxListeners = void 0;
+  var o = 10;
+  function l(E) {
+    if (typeof E != "function")
+      throw new TypeError('The "listener" argument must be of type Function. Received type ' + typeof E);
+  }
+  Object.defineProperty(r, "defaultMaxListeners", {
+    enumerable: !0,
+    get: function() {
+      return o;
+    },
+    set: function(E) {
+      if (typeof E != "number" || E < 0 || s(E))
+        throw new RangeError('The value of "defaultMaxListeners" is out of range. It must be a non-negative number. Received ' + E + ".");
+      o = E;
+    }
+  }), r.init = function() {
+    (this._events === void 0 || this._events === Object.getPrototypeOf(this)._events) && (this._events = /* @__PURE__ */ Object.create(null), this._eventsCount = 0), this._maxListeners = this._maxListeners || void 0;
+  }, r.prototype.setMaxListeners = function(m) {
+    if (typeof m != "number" || m < 0 || s(m))
+      throw new RangeError('The value of "n" is out of range. It must be a non-negative number. Received ' + m + ".");
+    return this._maxListeners = m, this;
+  };
+  function _(E) {
+    return E._maxListeners === void 0 ? r.defaultMaxListeners : E._maxListeners;
+  }
+  r.prototype.getMaxListeners = function() {
+    return _(this);
+  }, r.prototype.emit = function(m) {
+    for (var g = [], C = 1; C < arguments.length; C++) g.push(arguments[C]);
+    var T = m === "error", a = this._events;
+    if (a !== void 0)
+      T = T && a.error === void 0;
+    else if (!T)
+      return !1;
+    if (T) {
+      var h;
+      if (g.length > 0 && (h = g[0]), h instanceof Error)
+        throw h;
+      var f = new Error("Unhandled error." + (h ? " (" + h.message + ")" : ""));
+      throw f.context = h, f;
+    }
+    var p = a[m];
+    if (p === void 0)
+      return !1;
+    if (typeof p == "function")
+      e(p, this, g);
+    else
+      for (var w = p.length, b = P(p, w), C = 0; C < w; ++C)
+        e(b[C], this, g);
+    return !0;
+  };
+  function u(E, m, g, C) {
+    var T, a, h;
+    if (l(g), a = E._events, a === void 0 ? (a = E._events = /* @__PURE__ */ Object.create(null), E._eventsCount = 0) : (a.newListener !== void 0 && (E.emit(
+      "newListener",
+      m,
+      g.listener ? g.listener : g
+    ), a = E._events), h = a[m]), h === void 0)
+      h = a[m] = g, ++E._eventsCount;
+    else if (typeof h == "function" ? h = a[m] = C ? [g, h] : [h, g] : C ? h.unshift(g) : h.push(g), T = _(E), T > 0 && h.length > T && !h.warned) {
+      h.warned = !0;
+      var f = new Error("Possible EventEmitter memory leak detected. " + h.length + " " + String(m) + " listeners added. Use emitter.setMaxListeners() to increase limit");
+      f.name = "MaxListenersExceededWarning", f.emitter = E, f.type = m, f.count = h.length, n(f);
+    }
+    return E;
+  }
+  r.prototype.addListener = function(m, g) {
+    return u(this, m, g, !1);
+  }, r.prototype.on = r.prototype.addListener, r.prototype.prependListener = function(m, g) {
+    return u(this, m, g, !0);
+  };
+  function v() {
+    if (!this.fired)
+      return this.target.removeListener(this.type, this.wrapFn), this.fired = !0, arguments.length === 0 ? this.listener.call(this.target) : this.listener.apply(this.target, arguments);
+  }
+  function d(E, m, g) {
+    var C = { fired: !1, wrapFn: void 0, target: E, type: m, listener: g }, T = v.bind(C);
+    return T.listener = g, C.wrapFn = T, T;
+  }
+  r.prototype.once = function(m, g) {
+    return l(g), this.on(m, d(this, m, g)), this;
+  }, r.prototype.prependOnceListener = function(m, g) {
+    return l(g), this.prependListener(m, d(this, m, g)), this;
+  }, r.prototype.removeListener = function(m, g) {
+    var C, T, a, h, f;
+    if (l(g), T = this._events, T === void 0)
+      return this;
+    if (C = T[m], C === void 0)
+      return this;
+    if (C === g || C.listener === g)
+      --this._eventsCount === 0 ? this._events = /* @__PURE__ */ Object.create(null) : (delete T[m], T.removeListener && this.emit("removeListener", m, C.listener || g));
+    else if (typeof C != "function") {
+      for (a = -1, h = C.length - 1; h >= 0; h--)
+        if (C[h] === g || C[h].listener === g) {
+          f = C[h].listener, a = h;
+          break;
+        }
+      if (a < 0)
+        return this;
+      a === 0 ? C.shift() : B(C, a), C.length === 1 && (T[m] = C[0]), T.removeListener !== void 0 && this.emit("removeListener", m, f || g);
+    }
+    return this;
+  }, r.prototype.off = r.prototype.removeListener, r.prototype.removeAllListeners = function(m) {
+    var g, C, T;
+    if (C = this._events, C === void 0)
+      return this;
+    if (C.removeListener === void 0)
+      return arguments.length === 0 ? (this._events = /* @__PURE__ */ Object.create(null), this._eventsCount = 0) : C[m] !== void 0 && (--this._eventsCount === 0 ? this._events = /* @__PURE__ */ Object.create(null) : delete C[m]), this;
+    if (arguments.length === 0) {
+      var a = Object.keys(C), h;
+      for (T = 0; T < a.length; ++T)
+        h = a[T], h !== "removeListener" && this.removeAllListeners(h);
+      return this.removeAllListeners("removeListener"), this._events = /* @__PURE__ */ Object.create(null), this._eventsCount = 0, this;
+    }
+    if (g = C[m], typeof g == "function")
+      this.removeListener(m, g);
+    else if (g !== void 0)
+      for (T = g.length - 1; T >= 0; T--)
+        this.removeListener(m, g[T]);
+    return this;
+  };
+  function R(E, m, g) {
+    var C = E._events;
+    if (C === void 0)
+      return [];
+    var T = C[m];
+    return T === void 0 ? [] : typeof T == "function" ? g ? [T.listener || T] : [T] : g ? F(T) : P(T, T.length);
+  }
+  r.prototype.listeners = function(m) {
+    return R(this, m, !0);
+  }, r.prototype.rawListeners = function(m) {
+    return R(this, m, !1);
+  }, r.listenerCount = function(E, m) {
+    return typeof E.listenerCount == "function" ? E.listenerCount(m) : I.call(E, m);
+  }, r.prototype.listenerCount = I;
+  function I(E) {
+    var m = this._events;
+    if (m !== void 0) {
+      var g = m[E];
+      if (typeof g == "function")
+        return 1;
+      if (g !== void 0)
+        return g.length;
+    }
+    return 0;
+  }
+  r.prototype.eventNames = function() {
+    return this._eventsCount > 0 ? t(this._events) : [];
+  };
+  function P(E, m) {
+    for (var g = new Array(m), C = 0; C < m; ++C)
+      g[C] = E[C];
+    return g;
+  }
+  function B(E, m) {
+    for (; m + 1 < E.length; m++)
+      E[m] = E[m + 1];
+    E.pop();
+  }
+  function F(E) {
+    for (var m = new Array(E.length), g = 0; g < m.length; ++g)
+      m[g] = E[g].listener || E[g];
+    return m;
+  }
+  function M(E, m) {
+    return new Promise(function(g, C) {
+      function T(h) {
+        E.removeListener(m, a), C(h);
+      }
+      function a() {
+        typeof E.removeListener == "function" && E.removeListener("error", T), g([].slice.call(arguments));
+      }
+      q(E, m, a, { once: !0 }), m !== "error" && W(E, T, { once: !0 });
+    });
+  }
+  function W(E, m, g) {
+    typeof E.on == "function" && q(E, "error", m, g);
+  }
+  function q(E, m, g, C) {
+    if (typeof E.on == "function")
+      C.once ? E.once(m, g) : E.on(m, g);
+    else if (typeof E.addEventListener == "function")
+      E.addEventListener(m, function T(a) {
+        C.once && E.removeEventListener(m, T), g(a);
+      });
+    else
+      throw new TypeError('The "emitter" argument must be of type EventEmitter. Received type ' + typeof E);
+  }
+  return Ie.exports;
+}
+var je, At;
+function pi() {
+  return At || (At = 1, je = class {
+    constructor(e) {
+      if (!(e > 0) || (e - 1 & e) !== 0) throw new Error("Max size for a FixedFIFO should be a power of two");
+      this.buffer = new Array(e), this.mask = e - 1, this.top = 0, this.btm = 0, this.next = null;
+    }
+    clear() {
+      this.top = this.btm = 0, this.next = null, this.buffer.fill(void 0);
+    }
+    push(e) {
+      return this.buffer[this.top] !== void 0 ? !1 : (this.buffer[this.top] = e, this.top = this.top + 1 & this.mask, !0);
+    }
+    shift() {
+      const e = this.buffer[this.btm];
+      if (e !== void 0)
+        return this.buffer[this.btm] = void 0, this.btm = this.btm + 1 & this.mask, e;
+    }
+    peek() {
+      return this.buffer[this.btm];
+    }
+    isEmpty() {
+      return this.buffer[this.btm] === void 0;
+    }
+  }), je;
+}
+var Ke, kt;
+function mi() {
+  if (kt) return Ke;
+  kt = 1;
+  const c = pi();
+  return Ke = class {
+    constructor(t) {
+      this.hwm = t || 16, this.head = new c(this.hwm), this.tail = this.head, this.length = 0;
+    }
+    clear() {
+      this.head = this.tail, this.head.clear(), this.length = 0;
+    }
+    push(t) {
+      if (this.length++, !this.head.push(t)) {
+        const n = this.head;
+        this.head = n.next = new c(2 * this.head.buffer.length), this.head.push(t);
+      }
+    }
+    shift() {
+      this.length !== 0 && this.length--;
+      const t = this.tail.shift();
+      if (t === void 0 && this.tail.next) {
+        const n = this.tail.next;
+        return this.tail.next = null, this.tail = n, this.tail.shift();
+      }
+      return t;
+    }
+    peek() {
+      const t = this.tail.peek();
+      return t === void 0 && this.tail.next ? this.tail.next.peek() : t;
+    }
+    isEmpty() {
+      return this.length === 0;
+    }
+  }, Ke;
+}
+var ze, Pt;
+function Nt() {
+  return Pt || (Pt = 1, ze = class {
+    constructor(e) {
+      this.decoder = new TextDecoder(e === "utf16le" ? "utf16-le" : e);
+    }
+    get remaining() {
+      return -1;
+    }
+    decode(e) {
+      return this.decoder.decode(e, { stream: !0 });
+    }
+    flush() {
+      return this.decoder.decode(new Uint8Array(0));
+    }
+  }), ze;
+}
+var Ge, Ft;
+function yi() {
+  if (Ft) return Ge;
+  Ft = 1;
+  const c = Nt(), e = Nt();
+  Ge = class {
+    constructor(s = "utf8") {
+      switch (this.encoding = t(s), this.encoding) {
+        case "utf8":
+          this.decoder = new e();
+          break;
+        case "utf16le":
+        case "base64":
+          throw new Error("Unsupported encoding: " + this.encoding);
+        default:
+          this.decoder = new c(this.encoding);
+      }
+    }
+    get remaining() {
+      return this.decoder.remaining;
+    }
+    push(s) {
+      return typeof s == "string" ? s : this.decoder.decode(s);
+    }
+    // For Node.js compatibility
+    write(s) {
+      return this.push(s);
+    }
+    end(s) {
+      let r = "";
+      return s && (r = this.push(s)), r += this.decoder.flush(), r;
+    }
+  };
+  function t(n) {
+    switch (n = n.toLowerCase(), n) {
+      case "utf8":
+      case "utf-8":
+        return "utf8";
+      case "ucs2":
+      case "ucs-2":
+      case "utf16le":
+      case "utf-16le":
+        return "utf16le";
+      case "latin1":
+      case "binary":
+        return "latin1";
+      case "base64":
+      case "ascii":
+      case "hex":
+        return n;
+      default:
+        throw new Error("Unknown encoding: " + n);
+    }
+  }
+  return Ge;
+}
+var $e, Ot;
+function gi() {
+  if (Ot) return $e;
+  Ot = 1;
+  const { EventEmitter: c } = Qt(), e = new Error("Stream was destroyed"), t = new Error("Premature close"), n = mi(), s = yi(), r = typeof queueMicrotask > "u" ? (x) => tt.process.nextTick(x) : queueMicrotask, o = (1 << 29) - 1, l = 1, _ = 2, u = 4, v = 8, d = o ^ l, R = o ^ _, I = 16, P = 32, B = 64, F = 128, M = 256, W = 512, q = 1024, E = 2048, m = 4096, g = 8192, C = 16384, T = 32768, a = 65536, h = 131072, f = M | W, p = I | a, w = B | I, b = m | F, A = M | h, S = o ^ I, D = o ^ B, Ee = o ^ (B | a), de = o ^ a, hn = o ^ M, un = o ^ (F | g), ln = o ^ q, st = o ^ f, rt = o ^ T, dn = o ^ P, ot = o ^ h, fn = o ^ A, $ = 1 << 18, se = 2 << 18, fe = 4 << 18, Z = 8 << 18, _e = 16 << 18, Y = 32 << 18, De = 64 << 18, re = 128 << 18, Me = 256 << 18, ee = 512 << 18, ve = 1024 << 18, _n = o ^ ($ | Me), at = o ^ fe, pn = o ^ ($ | ee), mn = o ^ _e, yn = o ^ Z, ct = o ^ re, gn = o ^ se, ht = o ^ ve, pe = I | $, ut = o ^ pe, Le = C | Y, z = u | v | _, j = z | l, lt = z | Le, bn = at & D, xe = re | T, Sn = xe & ut, dt = j | Sn, wn = j | q | C, ft = j | C | F, En = j | q | F, vn = j | m | F | g, xn = j | I | q | C | a | h, Rn = z | q | C, Cn = P | j | T | B, In = T | l, Tn = j | ee | Y, An = Z | _e, _t = Z | $, kn = Z | _e | j | $, pt = j | $ | Z | ve, Pn = fe | $, Nn = $ | Me, Fn = j | ee | _t | Y, On = _e | z | ee | Y, Dn = se | j | re | fe, Mn = ee | Y | z, Re = Symbol.asyncIterator || Symbol("asyncIterator");
+  class mt {
+    constructor(i, { highWaterMark: y = 16384, map: k = null, mapWritable: N, byteLength: U, byteLengthWritable: L } = {}) {
+      this.stream = i, this.queue = new n(), this.highWaterMark = y, this.buffered = 0, this.error = null, this.pipeline = null, this.drains = null, this.byteLength = L || U || vt, this.map = N || k, this.afterWrite = Wn.bind(this), this.afterUpdateNextTick = zn.bind(this);
+    }
+    get ended() {
+      return (this.stream._duplexState & Y) !== 0;
+    }
+    push(i) {
+      return (this.stream._duplexState & Mn) !== 0 ? !1 : (this.map !== null && (i = this.map(i)), this.buffered += this.byteLength(i), this.queue.push(i), this.buffered < this.highWaterMark ? (this.stream._duplexState |= Z, !0) : (this.stream._duplexState |= An, !1));
+    }
+    shift() {
+      const i = this.queue.shift();
+      return this.buffered -= this.byteLength(i), this.buffered === 0 && (this.stream._duplexState &= yn), i;
+    }
+    end(i) {
+      typeof i == "function" ? this.stream.once("finish", i) : i != null && this.push(i), this.stream._duplexState = (this.stream._duplexState | ee) & at;
+    }
+    autoBatch(i, y) {
+      const k = [], N = this.stream;
+      for (k.push(i); (N._duplexState & pt) === _t; )
+        k.push(N._writableState.shift());
+      if ((N._duplexState & j) !== 0) return y(null);
+      N._writev(k, y);
+    }
+    update() {
+      const i = this.stream;
+      i._duplexState |= se;
+      do {
+        for (; (i._duplexState & pt) === Z; ) {
+          const y = this.shift();
+          i._duplexState |= Nn, i._write(y, this.afterWrite);
+        }
+        (i._duplexState & Pn) === 0 && this.updateNonPrimary();
+      } while (this.continueUpdate() === !0);
+      i._duplexState &= gn;
+    }
+    updateNonPrimary() {
+      const i = this.stream;
+      if ((i._duplexState & Fn) === ee) {
+        i._duplexState = i._duplexState | $, i._final(Hn.bind(this));
+        return;
+      }
+      if ((i._duplexState & z) === u) {
+        (i._duplexState & xe) === 0 && (i._duplexState |= pe, i._destroy(yt.bind(this)));
+        return;
+      }
+      (i._duplexState & dt) === l && (i._duplexState = (i._duplexState | pe) & d, i._open(gt.bind(this)));
+    }
+    continueUpdate() {
+      return (this.stream._duplexState & re) === 0 ? !1 : (this.stream._duplexState &= ct, !0);
+    }
+    updateCallback() {
+      (this.stream._duplexState & Dn) === fe ? this.update() : this.updateNextTick();
+    }
+    updateNextTick() {
+      (this.stream._duplexState & re) === 0 && (this.stream._duplexState |= re, (this.stream._duplexState & se) === 0 && r(this.afterUpdateNextTick));
+    }
+  }
+  class Ln {
+    constructor(i, { highWaterMark: y = 16384, map: k = null, mapReadable: N, byteLength: U, byteLengthReadable: L } = {}) {
+      this.stream = i, this.queue = new n(), this.highWaterMark = y === 0 ? 1 : y, this.buffered = 0, this.readAhead = y > 0, this.error = null, this.pipeline = null, this.byteLength = L || U || vt, this.map = N || k, this.pipeTo = null, this.afterRead = jn.bind(this), this.afterUpdateNextTick = Kn.bind(this);
+    }
+    get ended() {
+      return (this.stream._duplexState & C) !== 0;
+    }
+    pipe(i, y) {
+      if (this.pipeTo !== null) throw new Error("Can only pipe to one destination");
+      if (typeof y != "function" && (y = null), this.stream._duplexState |= W, this.pipeTo = i, this.pipeline = new Bn(this.stream, i, y), y && this.stream.on("error", xt), ye(i))
+        i._writableState.pipeline = this.pipeline, y && i.on("error", xt), i.on("finish", this.pipeline.finished.bind(this.pipeline));
+      else {
+        const k = this.pipeline.done.bind(this.pipeline, i), N = this.pipeline.done.bind(this.pipeline, i, null);
+        i.on("error", k), i.on("close", N), i.on("finish", this.pipeline.finished.bind(this.pipeline));
+      }
+      i.on("drain", qn.bind(this)), this.stream.emit("piping", i), i.emit("pipe", this.stream);
+    }
+    push(i) {
+      const y = this.stream;
+      return i === null ? (this.highWaterMark = 0, y._duplexState = (y._duplexState | q) & Ee, !1) : this.map !== null && (i = this.map(i), i === null) ? (y._duplexState &= de, this.buffered < this.highWaterMark) : (this.buffered += this.byteLength(i), this.queue.push(i), y._duplexState = (y._duplexState | F) & de, this.buffered < this.highWaterMark);
+    }
+    shift() {
+      const i = this.queue.shift();
+      return this.buffered -= this.byteLength(i), this.buffered === 0 && (this.stream._duplexState &= un), i;
+    }
+    unshift(i) {
+      const y = [this.map !== null ? this.map(i) : i];
+      for (; this.buffered > 0; ) y.push(this.shift());
+      for (let k = 0; k < y.length - 1; k++) {
+        const N = y[k];
+        this.buffered += this.byteLength(N), this.queue.push(N);
+      }
+      this.push(y[y.length - 1]);
+    }
+    read() {
+      const i = this.stream;
+      if ((i._duplexState & ft) === F) {
+        const y = this.shift();
+        return this.pipeTo !== null && this.pipeTo.write(y) === !1 && (i._duplexState &= st), (i._duplexState & E) !== 0 && i.emit("data", y), y;
+      }
+      return this.readAhead === !1 && (i._duplexState |= h, this.updateNextTick()), null;
+    }
+    drain() {
+      const i = this.stream;
+      for (; (i._duplexState & ft) === F && (i._duplexState & f) !== 0; ) {
+        const y = this.shift();
+        this.pipeTo !== null && this.pipeTo.write(y) === !1 && (i._duplexState &= st), (i._duplexState & E) !== 0 && i.emit("data", y);
+      }
+    }
+    update() {
+      const i = this.stream;
+      i._duplexState |= P;
+      do {
+        for (this.drain(); this.buffered < this.highWaterMark && (i._duplexState & xn) === h; )
+          i._duplexState |= p, i._read(this.afterRead), this.drain();
+        (i._duplexState & vn) === b && (i._duplexState |= g, i.emit("readable")), (i._duplexState & w) === 0 && this.updateNonPrimary();
+      } while (this.continueUpdate() === !0);
+      i._duplexState &= dn;
+    }
+    updateNonPrimary() {
+      const i = this.stream;
+      if ((i._duplexState & En) === q && (i._duplexState = (i._duplexState | C) & ln, i.emit("end"), (i._duplexState & lt) === Le && (i._duplexState |= u), this.pipeTo !== null && this.pipeTo.end()), (i._duplexState & z) === u) {
+        (i._duplexState & xe) === 0 && (i._duplexState |= pe, i._destroy(yt.bind(this)));
+        return;
+      }
+      (i._duplexState & dt) === l && (i._duplexState = (i._duplexState | pe) & d, i._open(gt.bind(this)));
+    }
+    continueUpdate() {
+      return (this.stream._duplexState & T) === 0 ? !1 : (this.stream._duplexState &= rt, !0);
+    }
+    updateCallback() {
+      (this.stream._duplexState & Cn) === B ? this.update() : this.updateNextTick();
+    }
+    updateNextTickIfOpen() {
+      (this.stream._duplexState & In) === 0 && (this.stream._duplexState |= T, (this.stream._duplexState & P) === 0 && r(this.afterUpdateNextTick));
+    }
+    updateNextTick() {
+      (this.stream._duplexState & T) === 0 && (this.stream._duplexState |= T, (this.stream._duplexState & P) === 0 && r(this.afterUpdateNextTick));
+    }
+  }
+  class Un {
+    constructor(i) {
+      this.data = null, this.afterTransform = $n.bind(i), this.afterFinal = null;
+    }
+  }
+  class Bn {
+    constructor(i, y, k) {
+      this.from = i, this.to = y, this.afterPipe = k, this.error = null, this.pipeToFinished = !1;
+    }
+    finished() {
+      this.pipeToFinished = !0;
+    }
+    done(i, y) {
+      if (y && (this.error = y), i === this.to && (this.to = null, this.from !== null)) {
+        ((this.from._duplexState & C) === 0 || !this.pipeToFinished) && this.from.destroy(this.error || new Error("Writable stream closed prematurely"));
+        return;
+      }
+      if (i === this.from && (this.from = null, this.to !== null)) {
+        (i._duplexState & C) === 0 && this.to.destroy(this.error || new Error("Readable stream closed before ending"));
+        return;
+      }
+      this.afterPipe !== null && this.afterPipe(this.error), this.to = this.from = this.afterPipe = null;
+    }
+  }
+  function qn() {
+    this.stream._duplexState |= W, this.updateCallback();
+  }
+  function Hn(x) {
+    const i = this.stream;
+    x && i.destroy(x), (i._duplexState & z) === 0 && (i._duplexState |= Y, i.emit("finish")), (i._duplexState & lt) === Le && (i._duplexState |= u), i._duplexState &= pn, (i._duplexState & se) === 0 ? this.update() : this.updateNextTick();
+  }
+  function yt(x) {
+    const i = this.stream;
+    !x && this.error !== e && (x = this.error), x && i.emit("error", x), i._duplexState |= v, i.emit("close");
+    const y = i._readableState, k = i._writableState;
+    if (y !== null && y.pipeline !== null && y.pipeline.done(i, x), k !== null) {
+      for (; k.drains !== null && k.drains.length > 0; ) k.drains.shift().resolve(!1);
+      k.pipeline !== null && k.pipeline.done(i, x);
+    }
+  }
+  function Wn(x) {
+    const i = this.stream;
+    x && i.destroy(x), i._duplexState &= _n, this.drains !== null && Gn(this.drains), (i._duplexState & kn) === _e && (i._duplexState &= mn, (i._duplexState & De) === De && i.emit("drain")), this.updateCallback();
+  }
+  function jn(x) {
+    x && this.stream.destroy(x), this.stream._duplexState &= S, this.readAhead === !1 && (this.stream._duplexState & M) === 0 && (this.stream._duplexState &= ot), this.updateCallback();
+  }
+  function Kn() {
+    (this.stream._duplexState & P) === 0 && (this.stream._duplexState &= rt, this.update());
+  }
+  function zn() {
+    (this.stream._duplexState & se) === 0 && (this.stream._duplexState &= ct, this.update());
+  }
+  function Gn(x) {
+    for (let i = 0; i < x.length; i++)
+      --x[i].writes === 0 && (x.shift().resolve(!0), i--);
+  }
+  function gt(x) {
+    const i = this.stream;
+    x && i.destroy(x), (i._duplexState & u) === 0 && ((i._duplexState & wn) === 0 && (i._duplexState |= B), (i._duplexState & Tn) === 0 && (i._duplexState |= fe), i.emit("open")), i._duplexState &= ut, i._writableState !== null && i._writableState.updateCallback(), i._readableState !== null && i._readableState.updateCallback();
+  }
+  function $n(x, i) {
+    i != null && this.push(i), this._writableState.afterWrite(x);
+  }
+  function Vn(x) {
+    this._readableState !== null && (x === "data" && (this._duplexState |= E | A, this._readableState.updateNextTick()), x === "readable" && (this._duplexState |= m, this._readableState.updateNextTick())), this._writableState !== null && x === "drain" && (this._duplexState |= De, this._writableState.updateNextTick());
+  }
+  class Ue extends c {
+    constructor(i) {
+      super(), this._duplexState = 0, this._readableState = null, this._writableState = null, i && (i.open && (this._open = i.open), i.destroy && (this._destroy = i.destroy), i.predestroy && (this._predestroy = i.predestroy), i.signal && i.signal.addEventListener("abort", ri.bind(this))), this.on("newListener", Vn);
+    }
+    _open(i) {
+      i(null);
+    }
+    _destroy(i) {
+      i(null);
+    }
+    _predestroy() {
+    }
+    get readable() {
+      return this._readableState !== null ? !0 : void 0;
+    }
+    get writable() {
+      return this._writableState !== null ? !0 : void 0;
+    }
+    get destroyed() {
+      return (this._duplexState & v) !== 0;
+    }
+    get destroying() {
+      return (this._duplexState & z) !== 0;
+    }
+    destroy(i) {
+      (this._duplexState & z) === 0 && (i || (i = e), this._duplexState = (this._duplexState | u) & bn, this._readableState !== null && (this._readableState.highWaterMark = 0, this._readableState.error = i), this._writableState !== null && (this._writableState.highWaterMark = 0, this._writableState.error = i), this._duplexState |= _, this._predestroy(), this._duplexState &= R, this._readableState !== null && this._readableState.updateNextTick(), this._writableState !== null && this._writableState.updateNextTick());
+    }
+  }
+  class me extends Ue {
+    constructor(i) {
+      super(i), this._duplexState |= l | Y | h, this._readableState = new Ln(this, i), i && (this._readableState.readAhead === !1 && (this._duplexState &= ot), i.read && (this._read = i.read), i.eagerOpen && this._readableState.updateNextTick(), i.encoding && this.setEncoding(i.encoding));
+    }
+    setEncoding(i) {
+      const y = new s(i), k = this._readableState.map || Qn;
+      return this._readableState.map = N, this;
+      function N(U) {
+        const L = y.push(U);
+        return L === "" && (U.byteLength !== 0 || y.remaining > 0) ? null : k(L);
+      }
+    }
+    _read(i) {
+      i(null);
+    }
+    pipe(i, y) {
+      return this._readableState.updateNextTick(), this._readableState.pipe(i, y), i;
+    }
+    read() {
+      return this._readableState.updateNextTick(), this._readableState.read();
+    }
+    push(i) {
+      return this._readableState.updateNextTickIfOpen(), this._readableState.push(i);
+    }
+    unshift(i) {
+      return this._readableState.updateNextTickIfOpen(), this._readableState.unshift(i);
+    }
+    resume() {
+      return this._duplexState |= A, this._readableState.updateNextTick(), this;
+    }
+    pause() {
+      return this._duplexState &= this._readableState.readAhead === !1 ? fn : hn, this;
+    }
+    static _fromAsyncIterator(i, y) {
+      let k;
+      const N = new me({
+        ...y,
+        read(L) {
+          i.next().then(U).then(L.bind(null, null)).catch(L);
+        },
+        predestroy() {
+          k = i.return();
+        },
+        destroy(L) {
+          if (!k) return L(null);
+          k.then(L.bind(null, null)).catch(L);
+        }
+      });
+      return N;
+      function U(L) {
+        L.done ? N.push(null) : N.push(L.value);
+      }
+    }
+    static from(i, y) {
+      if (ni(i)) return i;
+      if (i[Re]) return this._fromAsyncIterator(i[Re](), y);
+      Array.isArray(i) || (i = i === void 0 ? [] : [i]);
+      let k = 0;
+      return new me({
+        ...y,
+        read(N) {
+          this.push(k === i.length ? null : i[k++]), N(null);
+        }
+      });
+    }
+    static isBackpressured(i) {
+      return (i._duplexState & Rn) !== 0 || i._readableState.buffered >= i._readableState.highWaterMark;
+    }
+    static isPaused(i) {
+      return (i._duplexState & M) === 0;
+    }
+    [Re]() {
+      const i = this;
+      let y = null, k = null, N = null;
+      return this.on("error", (O) => {
+        y = O;
+      }), this.on("readable", U), this.on("close", L), {
+        [Re]() {
+          return this;
+        },
+        next() {
+          return new Promise(function(O, G) {
+            k = O, N = G;
+            const X = i.read();
+            X !== null ? oe(X) : (i._duplexState & v) !== 0 && oe(null);
+          });
+        },
+        return() {
+          return ge(null);
+        },
+        throw(O) {
+          return ge(O);
+        }
+      };
+      function U() {
+        k !== null && oe(i.read());
+      }
+      function L() {
+        k !== null && oe(null);
+      }
+      function oe(O) {
+        N !== null && (y ? N(y) : O === null && (i._duplexState & C) === 0 ? N(e) : k({ value: O, done: O === null }), N = k = null);
+      }
+      function ge(O) {
+        return i.destroy(O), new Promise((G, X) => {
+          if (i._duplexState & v) return G({ value: void 0, done: !0 });
+          i.once("close", function() {
+            O ? X(O) : G({ value: void 0, done: !0 });
+          });
+        });
+      }
+    }
+  }
+  class bt extends Ue {
+    constructor(i) {
+      super(i), this._duplexState |= l | C, this._writableState = new mt(this, i), i && (i.writev && (this._writev = i.writev), i.write && (this._write = i.write), i.final && (this._final = i.final), i.eagerOpen && this._writableState.updateNextTick());
+    }
+    cork() {
+      this._duplexState |= ve;
+    }
+    uncork() {
+      this._duplexState &= ht, this._writableState.updateNextTick();
+    }
+    _writev(i, y) {
+      y(null);
+    }
+    _write(i, y) {
+      this._writableState.autoBatch(i, y);
+    }
+    _final(i) {
+      i(null);
+    }
+    static isBackpressured(i) {
+      return (i._duplexState & On) !== 0;
+    }
+    static drained(i) {
+      if (i.destroyed) return Promise.resolve(!1);
+      const y = i._writableState, N = (oi(i) ? Math.min(1, y.queue.length) : y.queue.length) + (i._duplexState & Me ? 1 : 0);
+      return N === 0 ? Promise.resolve(!0) : (y.drains === null && (y.drains = []), new Promise((U) => {
+        y.drains.push({ writes: N, resolve: U });
+      }));
+    }
+    write(i) {
+      return this._writableState.updateNextTick(), this._writableState.push(i);
+    }
+    end(i) {
+      return this._writableState.updateNextTick(), this._writableState.end(i), this;
+    }
+  }
+  class Be extends me {
+    // and Writable
+    constructor(i) {
+      super(i), this._duplexState = l | this._duplexState & h, this._writableState = new mt(this, i), i && (i.writev && (this._writev = i.writev), i.write && (this._write = i.write), i.final && (this._final = i.final));
+    }
+    cork() {
+      this._duplexState |= ve;
+    }
+    uncork() {
+      this._duplexState &= ht, this._writableState.updateNextTick();
+    }
+    _writev(i, y) {
+      y(null);
+    }
+    _write(i, y) {
+      this._writableState.autoBatch(i, y);
+    }
+    _final(i) {
+      i(null);
+    }
+    write(i) {
+      return this._writableState.updateNextTick(), this._writableState.push(i);
+    }
+    end(i) {
+      return this._writableState.updateNextTick(), this._writableState.end(i), this;
+    }
+  }
+  class St extends Be {
+    constructor(i) {
+      super(i), this._transformState = new Un(this), i && (i.transform && (this._transform = i.transform), i.flush && (this._flush = i.flush));
+    }
+    _write(i, y) {
+      this._readableState.buffered >= this._readableState.highWaterMark ? this._transformState.data = i : this._transform(i, this._transformState.afterTransform);
+    }
+    _read(i) {
+      if (this._transformState.data !== null) {
+        const y = this._transformState.data;
+        this._transformState.data = null, i(null), this._transform(y, this._transformState.afterTransform);
+      } else
+        i(null);
+    }
+    destroy(i) {
+      super.destroy(i), this._transformState.data !== null && (this._transformState.data = null, this._transformState.afterTransform());
+    }
+    _transform(i, y) {
+      y(null, i);
+    }
+    _flush(i) {
+      i(null);
+    }
+    _final(i) {
+      this._transformState.afterFinal = i, this._flush(Yn.bind(this));
+    }
+  }
+  class Jn extends St {
+  }
+  function Yn(x, i) {
+    const y = this._transformState.afterFinal;
+    if (x) return y(x);
+    i != null && this.push(i), this.push(null), y(null);
+  }
+  function Xn(...x) {
+    return new Promise((i, y) => wt(...x, (k) => {
+      if (k) return y(k);
+      i();
+    }));
+  }
+  function wt(x, ...i) {
+    const y = Array.isArray(x) ? [...x, ...i] : [x, ...i], k = y.length && typeof y[y.length - 1] == "function" ? y.pop() : null;
+    if (y.length < 2) throw new Error("Pipeline requires at least 2 streams");
+    let N = y[0], U = null, L = null;
+    for (let O = 1; O < y.length; O++)
+      U = y[O], ye(N) ? N.pipe(U, ge) : (oe(N, !0, O > 1, ge), N.pipe(U)), N = U;
+    if (k) {
+      let O = !1;
+      const G = ye(U) || !!(U._writableState && U._writableState.autoDestroy);
+      U.on("error", (X) => {
+        L === null && (L = X);
+      }), U.on("finish", () => {
+        O = !0, G || k(L);
+      }), G && U.on("close", () => k(L || (O ? null : t)));
+    }
+    return U;
+    function oe(O, G, X, qe) {
+      O.on("error", qe), O.on("close", ai);
+      function ai() {
+        if (O._readableState && !O._readableState.ended || X && O._writableState && !O._writableState.ended) return qe(t);
+      }
+    }
+    function ge(O) {
+      if (!(!O || L)) {
+        L = O;
+        for (const G of y)
+          G.destroy(O);
+      }
+    }
+  }
+  function Qn(x) {
+    return x;
+  }
+  function Et(x) {
+    return !!x._readableState || !!x._writableState;
+  }
+  function ye(x) {
+    return typeof x._duplexState == "number" && Et(x);
+  }
+  function Zn(x) {
+    return !!x._readableState && x._readableState.ended;
+  }
+  function ei(x) {
+    return !!x._writableState && x._writableState.ended;
+  }
+  function ti(x, i = {}) {
+    const y = x._readableState && x._readableState.error || x._writableState && x._writableState.error;
+    return !i.all && y === e ? null : y;
+  }
+  function ni(x) {
+    return ye(x) && x.readable;
+  }
+  function ii(x) {
+    return (x._duplexState & l) !== l || (x._duplexState & xe) !== 0;
+  }
+  function si(x) {
+    return typeof x == "object" && x !== null && typeof x.byteLength == "number";
+  }
+  function vt(x) {
+    return si(x) ? x.byteLength : 1024;
+  }
+  function xt() {
+  }
+  function ri() {
+    this.destroy(new Error("Stream aborted."));
+  }
+  function oi(x) {
+    return x._writev !== bt.prototype._writev && x._writev !== Be.prototype._writev;
+  }
+  return $e = {
+    pipeline: wt,
+    pipelinePromise: Xn,
+    isStream: Et,
+    isStreamx: ye,
+    isEnded: Zn,
+    isFinished: ei,
+    isDisturbed: ii,
+    getStreamError: ti,
+    Stream: Ue,
+    Writable: bt,
+    Readable: me,
+    Duplex: Be,
+    Transform: St,
+    // Export PassThrough for compatibility with Node.js core's stream module
+    PassThrough: Jn
+  }, $e;
+}
+var Zt = gi(), Ve, Dt;
+function bi() {
+  if (Dt) return Ve;
+  Dt = 1;
+  function c(t, n) {
+    for (const s in n)
+      Object.defineProperty(t, s, {
+        value: n[s],
+        enumerable: !0,
+        configurable: !0
+      });
+    return t;
+  }
+  function e(t, n, s) {
+    if (!t || typeof t == "string")
+      throw new TypeError("Please pass an Error to err-code");
+    s || (s = {}), typeof n == "object" && (s = n, n = ""), n && (s.code = n);
+    try {
+      return c(t, s);
+    } catch {
+      s.message = t.message, s.stack = t.stack;
+      const o = function() {
+      };
+      return o.prototype = Object.create(Object.getPrototypeOf(t)), c(new o(), s);
+    }
+  }
+  return Ve = e, Ve;
+}
+var Si = bi();
+const H = /* @__PURE__ */ Fe(Si);
+/* Common package for dealing with hex/string/uint8 conversions (and sha1 hashing)
+*
+* @author   Jimmy Wärting <jimmy@warting.se> (https://jimmy.warting.se/opensource)
+* @license  MIT
+*/
+const ke = "0123456789abcdef", en = [], Pe = [];
+for (let c = 0; c < 256; c++)
+  en[c] = ke[c >> 4 & 15] + ke[c & 15], c < 16 && (c < 10 ? Pe[48 + c] = c : Pe[87 + c] = c);
+const te = (c) => {
+  const e = c.length;
+  let t = "", n = 0;
+  for (; n < e; )
+    t += en[c[n++]];
+  return t;
+}, tn = (c) => {
+  const e = c.length >> 1, t = e << 1, n = new Uint8Array(e);
+  let s = 0, r = 0;
+  for (; r < t; )
+    n[s++] = Pe[c.charCodeAt(r++)] << 4 | Pe[c.charCodeAt(r++)];
+  return n;
+};
+var ce = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/", wi = typeof Uint8Array > "u" ? [] : new Uint8Array(256);
+for (var Te = 0; Te < ce.length; Te++)
+  wi[ce.charCodeAt(Te)] = Te;
+var Ei = function(c) {
+  var e = new Uint8Array(c), t, n = e.length, s = "";
+  for (t = 0; t < n; t += 3)
+    s += ce[e[t] >> 2], s += ce[(e[t] & 3) << 4 | e[t + 1] >> 4], s += ce[(e[t + 1] & 15) << 2 | e[t + 2] >> 6], s += ce[e[t + 2] & 63];
+  return n % 3 === 2 ? s = s.substring(0, s.length - 1) + "=" : n % 3 === 1 && (s = s.substring(0, s.length - 2) + "=="), s;
+};
+const vi = new TextDecoder(), nn = (c, e) => vi.decode(c), xi = new TextEncoder(), nt = (c) => xi.encode(c), Ri = (c) => Ei(c), ae = (c) => {
+  let e = "", t, n = 0;
+  const s = c.length;
+  for (; n < s; )
+    t = c.charCodeAt(n++), e += ke[t >> 4] + ke[t & 15];
+  return e;
+}, Mt = 65536, Se = (c) => {
+  const e = tn(c);
+  if (e.length <= Mt) return String.fromCharCode(...e);
+  let t = "", n = 0;
+  for (; n < e.length; )
+    t += String.fromCharCode(...e.subarray(n, n += Mt));
+  return t;
+}, Lt = typeof window < "u" ? window : self, et = Lt.crypto || Lt.msCrypto || {}, Ut = et.subtle || et.webkitSubtle, Ci = {
+  hex: te,
+  base64: Ri
+}, Ii = async (c, e, t = "sha-1") => {
+  if (!Ut) throw new Error("no web crypto support");
+  typeof c == "string" && (c = nt(c));
+  const n = new Uint8Array(await Ut.digest(t, c));
+  return e ? Ci[e](n) : n;
+}, ne = (c) => {
+  const e = new Uint8Array(c);
+  return et.getRandomValues(e);
+};
+/*! simple-peer. MIT License. Feross Aboukhadijeh <https://feross.org/opensource> */
+const Ti = Oe("simple-peer"), Je = 64 * 1024, Ai = 5 * 1e3, ki = 5 * 1e3;
+function Bt(c) {
+  return c.replace(/a=ice-options:trickle\s\n/g, "");
+}
+function Pi(c) {
+  console.warn(c);
+}
+class ie extends Zt.Duplex {
+  /** @type {RTCPeerConnection} */
+  _pc;
+  constructor(e) {
+    if (e = Object.assign({
+      allowHalfOpen: !1
+    }, e), super(e), this.__objectMode = !!e.objectMode, this._id = te(ne(4)).slice(0, 7), this._debug("new peer %o", e), this.channelName = e.initiator ? e.channelName || te(ne(20)) : null, this.initiator = e.initiator || !1, this.channelConfig = e.channelConfig || ie.channelConfig, this.channelNegotiated = this.channelConfig.negotiated, this.config = Object.assign({}, ie.config, e.config), this.offerOptions = e.offerOptions || {}, this.answerOptions = e.answerOptions || {}, this.sdpTransform = e.sdpTransform || ((t) => t), this.trickle = e.trickle !== void 0 ? e.trickle : !0, this.allowHalfTrickle = e.allowHalfTrickle !== void 0 ? e.allowHalfTrickle : !1, this.iceCompleteTimeout = e.iceCompleteTimeout || Ai, this._destroying = !1, this._connected = !1, this.remoteAddress = void 0, this.remoteFamily = void 0, this.remotePort = void 0, this.localAddress = void 0, this.localFamily = void 0, this.localPort = void 0, !Ze)
+      throw H(typeof window > "u" ? new Error("No WebRTC support: Specify `opts.wrtc` option in this environment") : new Error("No WebRTC support: Not a supported browser"), "ERR_WEBRTC_SUPPORT");
+    this._pcReady = !1, this._channelReady = !1, this._iceComplete = !1, this._iceCompleteTimer = null, this._channel = null, this._pendingCandidates = [], this._isNegotiating = !1, this._firstNegotiation = !0, this._batchedNegotiation = !1, this._queuedNegotiation = !1, this._sendersAwaitingStable = [], this._closingInterval = null, this._remoteTracks = [], this._remoteStreams = [], this._chunk = null, this._cb = null, this._interval = null;
+    try {
+      this._pc = new Ze(this.config);
+    } catch (t) {
+      this.__destroy(H(t, "ERR_PC_CONSTRUCTOR"));
+      return;
+    }
+    this._isReactNativeWebrtc = typeof this._pc._peerConnectionId == "number", this._pc.oniceconnectionstatechange = () => {
+      this._onIceStateChange();
+    }, this._pc.onicegatheringstatechange = () => {
+      this._onIceStateChange();
+    }, this._pc.onconnectionstatechange = () => {
+      this._onConnectionStateChange();
+    }, this._pc.onsignalingstatechange = () => {
+      this._onSignalingStateChange();
+    }, this._pc.onicecandidate = (t) => {
+      this._onIceCandidate(t);
+    }, typeof this._pc.peerIdentity == "object" && this._pc.peerIdentity.catch((t) => {
+      this.__destroy(H(t, "ERR_PC_PEER_IDENTITY"));
+    }), this.initiator || this.channelNegotiated ? this._setupData({
+      channel: this._pc.createDataChannel(this.channelName, this.channelConfig)
+    }) : this._pc.ondatachannel = (t) => {
+      this._setupData(t);
+    }, this._debug("initial negotiation"), this._needsNegotiation(), this._onFinishBound = () => {
+      this._onFinish();
+    }, this.once("finish", this._onFinishBound);
+  }
+  get bufferSize() {
+    return this._channel && this._channel.bufferedAmount || 0;
+  }
+  // HACK: it's possible channel.readyState is "closing" before peer.destroy() fires
+  // https://bugs.chromium.org/p/chromium/issues/detail?id=882743
+  get connected() {
+    return this._connected && this._channel.readyState === "open";
+  }
+  address() {
+    return { port: this.localPort, family: this.localFamily, address: this.localAddress };
+  }
+  signal(e) {
+    if (!this._destroying) {
+      if (this.destroyed) throw H(new Error("cannot signal after peer is destroyed"), "ERR_DESTROYED");
+      if (typeof e == "string")
+        try {
+          e = JSON.parse(e);
+        } catch {
+          e = {};
+        }
+      this._debug("signal()"), e.renegotiate && this.initiator && (this._debug("got request to renegotiate"), this._needsNegotiation()), e.transceiverRequest && this.initiator && (this._debug("got request for transceiver"), this.addTransceiver(e.transceiverRequest.kind, e.transceiverRequest.init)), e.candidate && (this._pc.remoteDescription && this._pc.remoteDescription.type ? this._addIceCandidate(e.candidate) : this._pendingCandidates.push(e.candidate)), e.sdp && this._pc.setRemoteDescription(new fi(e)).then(() => {
+        this.destroyed || (this._pendingCandidates.forEach((t) => {
+          this._addIceCandidate(t);
+        }), this._pendingCandidates = [], this._pc.remoteDescription.type === "offer" && this._createAnswer());
+      }).catch((t) => {
+        this.__destroy(H(t, "ERR_SET_REMOTE_DESCRIPTION"));
+      }), !e.sdp && !e.candidate && !e.renegotiate && !e.transceiverRequest && this.__destroy(H(new Error("signal() called with invalid signal data"), "ERR_SIGNALING"));
+    }
+  }
+  _addIceCandidate(e) {
+    const t = new _i(e);
+    this._pc.addIceCandidate(t).catch((n) => {
+      !t.address || t.address.endsWith(".local") ? Pi("Ignoring unsupported ICE candidate.") : this.__destroy(H(n, "ERR_ADD_ICE_CANDIDATE"));
+    });
+  }
+  /**
+   * Send text/binary data to the remote peer.
+   * @param {ArrayBufferView|ArrayBuffer|Uint8Array|string|Blob} chunk
+   */
+  send(e) {
+    if (!this._destroying) {
+      if (this.destroyed) throw H(new Error("cannot send after peer is destroyed"), "ERR_DESTROYED");
+      this._channel.send(e);
+    }
+  }
+  _needsNegotiation() {
+    this._debug("_needsNegotiation"), !this._batchedNegotiation && (this._batchedNegotiation = !0, queueMicrotask(() => {
+      this._batchedNegotiation = !1, this.initiator || !this._firstNegotiation ? (this._debug("starting batched negotiation"), this.negotiate()) : this._debug("non-initiator initial negotiation request discarded"), this._firstNegotiation = !1;
+    }));
+  }
+  negotiate() {
+    if (!this._destroying) {
+      if (this.destroyed) throw H(new Error("cannot negotiate after peer is destroyed"), "ERR_DESTROYED");
+      this.initiator ? this._isNegotiating ? (this._queuedNegotiation = !0, this._debug("already negotiating, queueing")) : (this._debug("start negotiation"), setTimeout(() => {
+        this._createOffer();
+      }, 0)) : this._isNegotiating ? (this._queuedNegotiation = !0, this._debug("already negotiating, queueing")) : (this._debug("requesting negotiation from initiator"), this.emit("signal", {
+        // request initiator to renegotiate
+        type: "renegotiate",
+        renegotiate: !0
+      })), this._isNegotiating = !0;
+    }
+  }
+  _final(e) {
+    this._readableState.ended || this.push(null), e(null);
+  }
+  __destroy(e) {
+    this.end(), this._destroy(() => {
+    }, e);
+  }
+  _destroy(e, t) {
+    this.destroyed || this._destroying || (this._destroying = !0, this._debug("destroying (error: %s)", t && (t.message || t)), setTimeout(() => {
+      if (this._connected && this.emit("disconnect"), this._connected = !1, this._pcReady = !1, this._channelReady = !1, this._remoteTracks = null, this._remoteStreams = null, this._senderMap = null, clearInterval(this._closingInterval), this._closingInterval = null, clearInterval(this._interval), this._interval = null, this._chunk = null, this._cb = null, this._onFinishBound && this.removeListener("finish", this._onFinishBound), this._onFinishBound = null, this._channel) {
+        try {
+          this._channel.close();
+        } catch {
+        }
+        this._channel.onmessage = null, this._channel.onopen = null, this._channel.onclose = null, this._channel.onerror = null;
+      }
+      if (this._pc) {
+        try {
+          this._pc.close();
+        } catch {
+        }
+        this._pc.oniceconnectionstatechange = null, this._pc.onicegatheringstatechange = null, this._pc.onsignalingstatechange = null, this._pc.onicecandidate = null, this._pc.ontrack = null, this._pc.ondatachannel = null;
+      }
+      this._pc = null, this._channel = null, t && this.emit("error", t), e();
+    }, 0));
+  }
+  _setupData(e) {
+    if (!e.channel)
+      return this.__destroy(H(new Error("Data channel event is missing `channel` property"), "ERR_DATA_CHANNEL"));
+    this._channel = e.channel, this._channel.binaryType = "arraybuffer", typeof this._channel.bufferedAmountLowThreshold == "number" && (this._channel.bufferedAmountLowThreshold = Je), this.channelName = this._channel.label, this._channel.onmessage = (n) => {
+      this._onChannelMessage(n);
+    }, this._channel.onbufferedamountlow = () => {
+      this._onChannelBufferedAmountLow();
+    }, this._channel.onopen = () => {
+      this._onChannelOpen();
+    }, this._channel.onclose = () => {
+      this._onChannelClose();
+    }, this._channel.onerror = (n) => {
+      const s = n.error instanceof Error ? n.error : new Error(`Datachannel error: ${n.message} ${n.filename}:${n.lineno}:${n.colno}`);
+      this.__destroy(H(s, "ERR_DATA_CHANNEL"));
+    };
+    let t = !1;
+    this._closingInterval = setInterval(() => {
+      this._channel && this._channel.readyState === "closing" ? (t && this._onChannelClose(), t = !0) : t = !1;
+    }, ki);
+  }
+  _write(e, t) {
+    if (this.destroyed) return t(H(new Error("cannot write after peer is destroyed"), "ERR_DATA_CHANNEL"));
+    if (this._connected) {
+      try {
+        this.send(e);
+      } catch (n) {
+        return this.__destroy(H(n, "ERR_DATA_CHANNEL"));
+      }
+      this._channel.bufferedAmount > Je ? (this._debug("start backpressure: bufferedAmount %d", this._channel.bufferedAmount), this._cb = t) : t(null);
+    } else
+      this._debug("write before connect"), this._chunk = e, this._cb = t;
+  }
+  // When stream finishes writing, close socket. Half open connections are not
+  // supported.
+  _onFinish() {
+    if (this.destroyed) return;
+    const e = () => {
+      setTimeout(() => this.__destroy(), 1e3);
+    };
+    this._connected ? e() : this.once("connect", e);
+  }
+  _startIceCompleteTimeout() {
+    this.destroyed || this._iceCompleteTimer || (this._debug("started iceComplete timeout"), this._iceCompleteTimer = setTimeout(() => {
+      this._iceComplete || (this._iceComplete = !0, this._debug("iceComplete timeout completed"), this.emit("iceTimeout"), this.emit("_iceComplete"));
+    }, this.iceCompleteTimeout));
+  }
+  _createOffer() {
+    this.destroyed || this._pc.createOffer(this.offerOptions).then((e) => {
+      if (this.destroyed) return;
+      !this.trickle && !this.allowHalfTrickle && (e.sdp = Bt(e.sdp)), e.sdp = this.sdpTransform(e.sdp);
+      const t = () => {
+        if (this.destroyed) return;
+        const r = this._pc.localDescription || e;
+        this._debug("signal"), this.emit("signal", {
+          type: r.type,
+          sdp: r.sdp
+        });
+      }, n = () => {
+        this._debug("createOffer success"), !this.destroyed && (this.trickle || this._iceComplete ? t() : this.once("_iceComplete", t));
+      }, s = (r) => {
+        this.__destroy(H(r, "ERR_SET_LOCAL_DESCRIPTION"));
+      };
+      this._pc.setLocalDescription(e).then(n).catch(s);
+    }).catch((e) => {
+      this.__destroy(H(e, "ERR_CREATE_OFFER"));
+    });
+  }
+  _createAnswer() {
+    this.destroyed || this._pc.createAnswer(this.answerOptions).then((e) => {
+      if (this.destroyed) return;
+      !this.trickle && !this.allowHalfTrickle && (e.sdp = Bt(e.sdp)), e.sdp = this.sdpTransform(e.sdp);
+      const t = () => {
+        if (this.destroyed) return;
+        const r = this._pc.localDescription || e;
+        this._debug("signal"), this.emit("signal", {
+          type: r.type,
+          sdp: r.sdp
+        }), this.initiator || this._requestMissingTransceivers?.();
+      }, n = () => {
+        this.destroyed || (this.trickle || this._iceComplete ? t() : this.once("_iceComplete", t));
+      }, s = (r) => {
+        this.__destroy(H(r, "ERR_SET_LOCAL_DESCRIPTION"));
+      };
+      this._pc.setLocalDescription(e).then(n).catch(s);
+    }).catch((e) => {
+      this.__destroy(H(e, "ERR_CREATE_ANSWER"));
+    });
+  }
+  _onConnectionStateChange() {
+    this.destroyed || this._destroying || this._pc.connectionState === "failed" && this.__destroy(H(new Error("Connection failed."), "ERR_CONNECTION_FAILURE"));
+  }
+  _onIceStateChange() {
+    if (this.destroyed) return;
+    const e = this._pc.iceConnectionState, t = this._pc.iceGatheringState;
+    this._debug(
+      "iceStateChange (connection: %s) (gathering: %s)",
+      e,
+      t
+    ), this.emit("iceStateChange", e, t), (e === "connected" || e === "completed") && (this._pcReady = !0, this._maybeReady()), e === "failed" && this.__destroy(H(new Error("Ice connection failed."), "ERR_ICE_CONNECTION_FAILURE")), e === "closed" && this.__destroy(H(new Error("Ice connection closed."), "ERR_ICE_CONNECTION_CLOSED"));
+  }
+  getStats(e) {
+    const t = (n) => (Object.prototype.toString.call(n.values) === "[object Array]" && n.values.forEach((s) => {
+      Object.assign(n, s);
+    }), n);
+    this._pc.getStats.length === 0 || this._isReactNativeWebrtc ? this._pc.getStats().then((n) => {
+      const s = [];
+      n.forEach((r) => {
+        s.push(t(r));
+      }), e(null, s);
+    }, (n) => e(n)) : this._pc.getStats.length > 0 ? this._pc.getStats((n) => {
+      if (this.destroyed) return;
+      const s = [];
+      n.result().forEach((r) => {
+        const o = {};
+        r.names().forEach((l) => {
+          o[l] = r.stat(l);
+        }), o.id = r.id, o.type = r.type, o.timestamp = r.timestamp, s.push(t(o));
+      }), e(null, s);
+    }, (n) => e(n)) : e(null, []);
+  }
+  _maybeReady() {
+    if (this._debug("maybeReady pc %s channel %s", this._pcReady, this._channelReady), this._connected || this._connecting || !this._pcReady || !this._channelReady) return;
+    this._connecting = !0;
+    const e = () => {
+      this.destroyed || this._destroying || this.getStats((t, n) => {
+        if (this.destroyed || this._destroying) return;
+        t && (n = []);
+        const s = {}, r = {}, o = {};
+        let l = !1;
+        n.forEach((u) => {
+          (u.type === "remotecandidate" || u.type === "remote-candidate") && (s[u.id] = u), (u.type === "localcandidate" || u.type === "local-candidate") && (r[u.id] = u), (u.type === "candidatepair" || u.type === "candidate-pair") && (o[u.id] = u);
+        });
+        const _ = (u) => {
+          l = !0;
+          let v = r[u.localCandidateId];
+          v && (v.ip || v.address) ? (this.localAddress = v.ip || v.address, this.localPort = Number(v.port)) : v && v.ipAddress ? (this.localAddress = v.ipAddress, this.localPort = Number(v.portNumber)) : typeof u.googLocalAddress == "string" && (v = u.googLocalAddress.split(":"), this.localAddress = v[0], this.localPort = Number(v[1])), this.localAddress && (this.localFamily = this.localAddress.includes(":") ? "IPv6" : "IPv4");
+          let d = s[u.remoteCandidateId];
+          d && (d.ip || d.address) ? (this.remoteAddress = d.ip || d.address, this.remotePort = Number(d.port)) : d && d.ipAddress ? (this.remoteAddress = d.ipAddress, this.remotePort = Number(d.portNumber)) : typeof u.googRemoteAddress == "string" && (d = u.googRemoteAddress.split(":"), this.remoteAddress = d[0], this.remotePort = Number(d[1])), this.remoteAddress && (this.remoteFamily = this.remoteAddress.includes(":") ? "IPv6" : "IPv4"), this._debug(
+            "connect local: %s:%s remote: %s:%s",
+            this.localAddress,
+            this.localPort,
+            this.remoteAddress,
+            this.remotePort
+          );
+        };
+        if (n.forEach((u) => {
+          u.type === "transport" && u.selectedCandidatePairId && _(o[u.selectedCandidatePairId]), (u.type === "googCandidatePair" && u.googActiveConnection === "true" || (u.type === "candidatepair" || u.type === "candidate-pair") && u.selected) && _(u);
+        }), !l && (!Object.keys(o).length || Object.keys(r).length)) {
+          setTimeout(e, 100);
+          return;
+        } else
+          this._connecting = !1, this._connected = !0, this.emit("connect");
+        if (this._chunk) {
+          try {
+            this.send(this._chunk);
+          } catch (v) {
+            return this.__destroy(H(v, "ERR_DATA_CHANNEL"));
+          }
+          this._chunk = null, this._debug('sent chunk from "write before connect"');
+          const u = this._cb;
+          this._cb = null, u(null);
+        }
+        typeof this._channel.bufferedAmountLowThreshold != "number" && (this._interval = setInterval(() => this._onInterval(), 150), this._interval.unref && this._interval.unref()), this._debug("connect"), this.emit("connect");
+      });
+    };
+    e();
+  }
+  _onInterval() {
+    !this._cb || !this._channel || this._channel.bufferedAmount > Je || this._onChannelBufferedAmountLow();
+  }
+  _onSignalingStateChange() {
+    this.destroyed || (this._pc.signalingState === "stable" && (this._isNegotiating = !1, this._debug("flushing sender queue", this._sendersAwaitingStable), this._sendersAwaitingStable.forEach((e) => {
+      this._pc.removeTrack(e), this._queuedNegotiation = !0;
+    }), this._sendersAwaitingStable = [], this._queuedNegotiation ? (this._debug("flushing negotiation queue"), this._queuedNegotiation = !1, this._needsNegotiation()) : (this._debug("negotiated"), this.emit("negotiated"))), this._debug("signalingStateChange %s", this._pc.signalingState), this.emit("signalingStateChange", this._pc.signalingState));
+  }
+  _onIceCandidate(e) {
+    this.destroyed || (e.candidate && this.trickle ? this.emit("signal", {
+      type: "candidate",
+      candidate: {
+        candidate: e.candidate.candidate,
+        sdpMLineIndex: e.candidate.sdpMLineIndex,
+        sdpMid: e.candidate.sdpMid
+      }
+    }) : !e.candidate && !this._iceComplete && (this._iceComplete = !0, this.emit("_iceComplete")), e.candidate && this._startIceCompleteTimeout());
+  }
+  _onChannelMessage(e) {
+    if (this.destroyed) return;
+    let t = e.data;
+    t instanceof ArrayBuffer ? t = new Uint8Array(t) : this.__objectMode === !1 && (t = nt(t)), this.push(t);
+  }
+  _onChannelBufferedAmountLow() {
+    if (this.destroyed || !this._cb) return;
+    this._debug("ending backpressure: bufferedAmount %d", this._channel.bufferedAmount);
+    const e = this._cb;
+    this._cb = null, e(null);
+  }
+  _onChannelOpen() {
+    this._connected || this.destroyed || (this._debug("on channel open"), this._channelReady = !0, this._maybeReady());
+  }
+  _onChannelClose() {
+    this.destroyed || (this._debug("on channel close"), this.__destroy());
+  }
+  _debug() {
+    const e = [].slice.call(arguments);
+    e[0] = "[" + this._id + "] " + e[0], Ti.apply(null, e);
+  }
+}
+ie.WEBRTC_SUPPORT = !!Ze;
+ie.config = {
+  iceServers: [
+    {
+      urls: [
+        "stun:stun.l.google.com:19302",
+        "stun:global.stun.twilio.com:3478"
+      ]
+    }
+  ],
+  sdpSemantics: "unified-plan"
+};
+ie.channelConfig = {};
+/*! queue-microtask. MIT License. Feross Aboukhadijeh <https://feross.org/opensource> */
+var Ye, qt;
+function Ni() {
+  if (qt) return Ye;
+  qt = 1;
+  let c;
+  return Ye = typeof queueMicrotask == "function" ? queueMicrotask.bind(typeof window < "u" ? window : tt) : (e) => (c || (c = Promise.resolve())).then(e).catch((t) => setTimeout(() => {
+    throw t;
+  }, 0)), Ye;
+}
+var Fi = Ni();
+const Ht = /* @__PURE__ */ Fe(Fi), he = {}, sn = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: he
+}, Symbol.toStringTag, { value: "Module" }));
+/*! simple-websocket. MIT License. Feross Aboukhadijeh <https://feross.org/opensource> */
+const Oi = Oe("simple-websocket"), be = typeof he != "function" ? WebSocket : he, Wt = 64 * 1024;
+class rn extends Zt.Duplex {
+  constructor(e = {}) {
+    if (typeof e == "string" && (e = { url: e }), e = Object.assign({
+      allowHalfOpen: !1
+    }, e), super(e), this.__objectMode = !!e.objectMode, e.objectMode != null && delete e.objectMode, e.url == null && e.socket == null)
+      throw new Error("Missing required `url` or `socket` option");
+    if (e.url != null && e.socket != null)
+      throw new Error("Must specify either `url` or `socket` option, not both");
+    if (this._id = te(ne(4)).slice(0, 7), this._debug("new websocket: %o", e), this.connected = !1, this._chunk = null, this._cb = null, this._interval = null, e.socket)
+      this.url = e.socket.url, this._ws = e.socket, this.connected = e.socket.readyState === be.OPEN;
+    else {
+      this.url = e.url;
+      try {
+        typeof he == "function" ? this._ws = new be(e.url, {
+          ...e,
+          encoding: void 0
+          // encoding option breaks ws internals
+        }) : this._ws = new be(e.url);
+      } catch (t) {
+        Ht(() => this.destroy(t));
+        return;
+      }
+    }
+    this._ws.binaryType = "arraybuffer", e.socket && this.connected ? Ht(() => this._handleOpen()) : this._ws.onopen = () => this._handleOpen(), this._ws.onmessage = (t) => this._handleMessage(t), this._ws.onclose = () => this._handleClose(), this._ws.onerror = (t) => this._handleError(t), this._handleFinishBound = () => this._handleFinish(), this.once("finish", this._handleFinishBound);
+  }
+  /**
+   * Send text/binary data to the WebSocket server.
+   * @param {TypedArrayView|ArrayBuffer|Uint8Array|string|Blob|Object} chunk
+   */
+  send(e) {
+    this._ws.send(e);
+  }
+  _final(e) {
+    this._readableState.ended || this.push(null), e(null);
+  }
+  _destroy(e) {
+    if (!this.destroyed) {
+      if (this._writableState.ended || this.end(), this.connected = !1, clearInterval(this._interval), this._interval = null, this._chunk = null, this._cb = null, this._handleFinishBound && this.removeListener("finish", this._handleFinishBound), this._handleFinishBound = null, this._ws) {
+        const t = this._ws, n = () => {
+          t.onclose = null;
+        };
+        if (t.readyState === be.CLOSED)
+          n();
+        else
+          try {
+            t.onclose = n, t.close();
+          } catch {
+            n();
+          }
+        t.onopen = null, t.onmessage = null, t.onerror = () => {
+        };
+      }
+      this._ws = null, e();
+    }
+  }
+  _write(e, t) {
+    if (this.destroyed) return t(new Error("cannot write after socket is destroyed"));
+    if (this.connected) {
+      try {
+        this.send(e);
+      } catch (n) {
+        return this.destroy(n);
+      }
+      typeof he != "function" && this._ws.bufferedAmount > Wt ? (this._debug("start backpressure: bufferedAmount %d", this._ws.bufferedAmount), this._cb = t) : t(null);
+    } else
+      this._debug("write before connect"), this._chunk = e, this._cb = t;
+  }
+  _handleOpen() {
+    if (!(this.connected || this.destroyed)) {
+      if (this.connected = !0, this._chunk) {
+        try {
+          this.send(this._chunk);
+        } catch (t) {
+          return this.destroy(t);
+        }
+        this._chunk = null, this._debug('sent chunk from "write before connect"');
+        const e = this._cb;
+        this._cb = null, e(null);
+      }
+      typeof he != "function" && (this._interval = setInterval(() => this._onInterval(), 150), this._interval.unref && this._interval.unref()), this._debug("connect"), this.emit("connect");
+    }
+  }
+  _handleMessage(e) {
+    if (this.destroyed) return;
+    let t = e.data;
+    t instanceof ArrayBuffer && (t = new Uint8Array(t)), this.__objectMode === !1 && (t = nt(t)), this.push(t);
+  }
+  _handleClose() {
+    this.destroyed || (this._debug("on close"), this.destroy());
+  }
+  _handleError(e) {
+    this.destroy(new Error(`Error connecting to ${this.url}`));
+  }
+  // When stream finishes writing, close socket. Half open connections are not
+  // supported.
+  _handleFinish() {
+    if (this.destroyed) return;
+    const e = () => {
+      setTimeout(() => this.destroy(), 1e3);
+    };
+    this.connected ? e() : this.once("connect", e);
+  }
+  _onInterval() {
+    if (!this._cb || !this._ws || this._ws.bufferedAmount > Wt)
+      return;
+    this._debug("ending backpressure: bufferedAmount %d", this._ws.bufferedAmount);
+    const e = this._cb;
+    this._cb = null, e(null);
+  }
+  _debug() {
+    const e = [].slice.call(arguments);
+    e[0] = "[" + this._id + "] " + e[0], Oi.apply(null, e);
+  }
+}
+rn.WEBSOCKET_SUPPORT = !!be;
+const Di = {
+  ...sn
+};
+var Mi = Qt();
+const it = /* @__PURE__ */ Fe(Mi);
+class Li extends it {
+  constructor(e, t) {
+    super(), this.client = e, this.announceUrl = t, this.interval = null, this.destroyed = !1;
+  }
+  setInterval(e) {
+    e == null && (e = this.DEFAULT_ANNOUNCE_INTERVAL), clearInterval(this.interval), e && (this.interval = setInterval(() => {
+      this.announce(this.client._defaultAnnounceOpts());
+    }, e), this.interval.unref && this.interval.unref());
+  }
+}
+const K = Oe("bittorrent-tracker:websocket-tracker"), V = {}, Ui = 10 * 1e3, Bi = 3600 * 1e3, qi = 300 * 1e3, Hi = 50 * 1e3;
+class Ne extends Li {
+  constructor(e, t) {
+    super(e, t), K("new websocket tracker %s", t), this.peers = {}, this.socket = null, this.reconnecting = !1, this.retries = 0, this.reconnectTimer = null, this.expectingResponse = !1, this._openSocket();
+  }
+  announce(e) {
+    if (this.destroyed || this.reconnecting) return;
+    if (!this.socket.connected) {
+      this.socket.once("connect", () => {
+        this.announce(e);
+      });
+      return;
+    }
+    const t = Object.assign({}, e, {
+      action: "announce",
+      info_hash: this.client._infoHashBinary,
+      peer_id: this.client._peerIdBinary
+    });
+    if (this._trackerId && (t.trackerid = this._trackerId), e.event === "stopped" || e.event === "completed")
+      this._send(t);
+    else {
+      const n = Math.min(e.numwant, 5);
+      this._generateOffers(n, (s) => {
+        t.numwant = n, t.offers = s, this._send(t);
+      });
+    }
+  }
+  scrape(e) {
+    if (this.destroyed || this.reconnecting) return;
+    if (!this.socket.connected) {
+      this.socket.once("connect", () => {
+        this.scrape(e);
+      });
+      return;
+    }
+    const n = {
+      action: "scrape",
+      info_hash: Array.isArray(e.infoHash) && e.infoHash.length > 0 ? e.infoHash.map((s) => Se(s)) : e.infoHash && Se(e.infoHash) || this.client._infoHashBinary
+    };
+    this._send(n);
+  }
+  destroy(e = jt) {
+    if (this.destroyed) return e(null);
+    this.destroyed = !0, clearInterval(this.interval), clearTimeout(this.reconnectTimer);
+    for (const r in this.peers) {
+      const o = this.peers[r];
+      clearTimeout(o.trackerTimeout), o.destroy();
+    }
+    if (this.peers = null, this.socket && (this.socket.removeListener("connect", this._onSocketConnectBound), this.socket.removeListener("data", this._onSocketDataBound), this.socket.removeListener("close", this._onSocketCloseBound), this.socket.removeListener("error", this._onSocketErrorBound), this.socket = null), this._onSocketConnectBound = null, this._onSocketErrorBound = null, this._onSocketDataBound = null, this._onSocketCloseBound = null, V[this.announceUrl] && (V[this.announceUrl].consumers -= 1), V[this.announceUrl].consumers > 0) return e();
+    let t = V[this.announceUrl];
+    delete V[this.announceUrl], t.on("error", jt), t.once("close", e);
+    let n;
+    if (!this.expectingResponse) return s();
+    n = setTimeout(s, Di.DESTROY_TIMEOUT), t.once("data", s);
+    function s() {
+      n && (clearTimeout(n), n = null), t.removeListener("data", s), t.destroy(), t = null;
+    }
+  }
+  _openSocket() {
+    if (this.destroyed = !1, this.peers || (this.peers = {}), this._onSocketConnectBound = () => {
+      this._onSocketConnect();
+    }, this._onSocketErrorBound = (e) => {
+      this._onSocketError(e);
+    }, this._onSocketDataBound = (e) => {
+      this._onSocketData(e);
+    }, this._onSocketCloseBound = () => {
+      this._onSocketClose();
+    }, this.socket = V[this.announceUrl], this.socket)
+      V[this.announceUrl].consumers += 1, this.socket.connected && this._onSocketConnectBound();
+    else {
+      const e = new URL(this.announceUrl);
+      let t;
+      this.client._proxyOpts && (t = e.protocol === "wss:" ? this.client._proxyOpts.httpsAgent : this.client._proxyOpts.httpAgent, !t && this.client._proxyOpts.socksProxy && (t = this.client._proxyOpts.socksProxy)), this.socket = V[this.announceUrl] = new rn({ url: this.announceUrl, agent: t }), this.socket.consumers = 1, this.socket.once("connect", this._onSocketConnectBound);
+    }
+    this.socket.on("data", this._onSocketDataBound), this.socket.once("close", this._onSocketCloseBound), this.socket.once("error", this._onSocketErrorBound);
+  }
+  _onSocketConnect() {
+    this.destroyed || this.reconnecting && (this.reconnecting = !1, this.retries = 0, this.announce(this.client._defaultAnnounceOpts()));
+  }
+  _onSocketData(e) {
+    if (!this.destroyed) {
+      this.expectingResponse = !1;
+      try {
+        e = JSON.parse(nn(e));
+      } catch {
+        this.client.emit("warning", new Error("Invalid tracker response"));
+        return;
+      }
+      e.action === "announce" ? this._onAnnounceResponse(e) : e.action === "scrape" ? this._onScrapeResponse(e) : this._onSocketError(new Error(`invalid action in WS response: ${e.action}`));
+    }
+  }
+  _onAnnounceResponse(e) {
+    if (e.info_hash !== this.client._infoHashBinary) {
+      K(
+        "ignoring websocket data from %s for %s (looking for %s: reused socket)",
+        this.announceUrl,
+        ae(e.info_hash),
+        this.client.infoHash
+      );
+      return;
+    }
+    if (e.peer_id && e.peer_id === this.client._peerIdBinary)
+      return;
+    K(
+      "received %s from %s for %s",
+      JSON.stringify(e),
+      this.announceUrl,
+      this.client.infoHash
+    );
+    const t = e["failure reason"];
+    if (t) return this.client.emit("warning", new Error(t));
+    const n = e["warning message"];
+    n && this.client.emit("warning", new Error(n));
+    const s = e.interval || e["min interval"];
+    s && this.setInterval(s * 1e3);
+    const r = e["tracker id"];
+    if (r && (this._trackerId = r), e.complete != null) {
+      const l = Object.assign({}, e, {
+        announce: this.announceUrl,
+        infoHash: ae(e.info_hash)
+      });
+      this.client.emit("update", l);
+    }
+    let o;
+    if (e.offer && e.peer_id && (K("creating peer (from remote offer)"), o = this._createPeer(), o.id = ae(e.peer_id), o.once("signal", (l) => {
+      const _ = {
+        action: "announce",
+        info_hash: this.client._infoHashBinary,
+        peer_id: this.client._peerIdBinary,
+        to_peer_id: e.peer_id,
+        answer: l,
+        offer_id: e.offer_id
+      };
+      this._trackerId && (_.trackerid = this._trackerId), this._send(_);
+    }), this.client.emit("peer", o), o.signal(e.offer)), e.answer && e.peer_id) {
+      const l = ae(e.offer_id);
+      o = this.peers[l], o ? (o.id = ae(e.peer_id), this.client.emit("peer", o), o.signal(e.answer), clearTimeout(o.trackerTimeout), o.trackerTimeout = null, delete this.peers[l]) : K(`got unexpected answer: ${JSON.stringify(e.answer)}`);
+    }
+  }
+  _onScrapeResponse(e) {
+    e = e.files || {};
+    const t = Object.keys(e);
+    if (t.length === 0) {
+      this.client.emit("warning", new Error("invalid scrape response"));
+      return;
+    }
+    t.forEach((n) => {
+      const s = Object.assign(e[n], {
+        announce: this.announceUrl,
+        infoHash: ae(n)
+      });
+      this.client.emit("scrape", s);
+    });
+  }
+  _onSocketClose() {
+    this.destroyed || (this.destroy(), this._startReconnectTimer());
+  }
+  _onSocketError(e) {
+    this.destroyed || (this.destroy(), this.client.emit("warning", e), this._startReconnectTimer());
+  }
+  _startReconnectTimer() {
+    const e = Math.floor(Math.random() * qi) + Math.min(Math.pow(2, this.retries) * Ui, Bi);
+    this.reconnecting = !0, clearTimeout(this.reconnectTimer), this.reconnectTimer = setTimeout(() => {
+      this.retries++, this._openSocket();
+    }, e), this.reconnectTimer.unref && this.reconnectTimer.unref(), K("reconnecting socket in %s ms", e);
+  }
+  _send(e) {
+    if (this.destroyed) return;
+    this.expectingResponse = !0;
+    const t = JSON.stringify(e);
+    K("send %s", t), this.socket.send(t);
+  }
+  _generateOffers(e, t) {
+    const n = this, s = [];
+    K("generating %s offers", e);
+    for (let l = 0; l < e; ++l)
+      r();
+    o();
+    function r() {
+      const l = te(ne(20));
+      K("creating peer (from _generateOffers)");
+      const _ = n.peers[l] = n._createPeer({ initiator: !0 });
+      _.once("signal", (u) => {
+        s.push({
+          offer: u,
+          offer_id: Se(l)
+        }), o();
+      }), _.trackerTimeout = setTimeout(() => {
+        K("tracker timeout: destroying peer"), _.trackerTimeout = null, delete n.peers[l], _.destroy();
+      }, Hi), _.trackerTimeout.unref && _.trackerTimeout.unref();
+    }
+    function o() {
+      s.length === e && (K("generated %s offers", e), t(s));
+    }
+  }
+  _createPeer(e) {
+    const t = this;
+    e = Object.assign({
+      trickle: !1,
+      config: t.client._rtcConfig,
+      wrtc: t.client._wrtc
+    }, e);
+    const n = new ie(e);
+    return n.once("error", s), n.once("connect", r), n;
+    function s(o) {
+      t.client.emit("warning", new Error(`Connection error: ${o.message}`)), n.destroy();
+    }
+    function r() {
+      n.removeListener("error", s), n.removeListener("connect", r);
+    }
+  }
+}
+Ne.prototype.DEFAULT_ANNOUNCE_INTERVAL = 30 * 1e3;
+Ne._socketPool = V;
+function jt() {
+}
+var Xe = { exports: {} };
+const Kt = /* @__PURE__ */ ci(sn);
+/*
+ * [js-sha1]{@link https://github.com/emn178/js-sha1}
+ *
+ * @version 0.7.0
+ * @author Chen, Yi-Cyuan [emn178@gmail.com]
+ * @copyright Chen, Yi-Cyuan 2014-2024
+ * @license MIT
+ */
+var zt;
+function Wi() {
+  return zt || (zt = 1, function(c) {
+    (function() {
+      var e = "input is invalid type", t = "finalize already called", n = typeof window == "object", s = n ? window : {};
+      s.JS_SHA1_NO_WINDOW && (n = !1);
+      var r = !n && typeof self == "object", o = !s.JS_SHA1_NO_NODE_JS && typeof process == "object" && process.versions && process.versions.node;
+      o ? s = tt : r && (s = self);
+      var l = !s.JS_SHA1_NO_COMMON_JS && !0 && c.exports, _ = !s.JS_SHA1_NO_ARRAY_BUFFER && typeof ArrayBuffer < "u", u = "0123456789abcdef".split(""), v = [-2147483648, 8388608, 32768, 128], d = [24, 16, 8, 0], R = ["hex", "array", "digest", "arrayBuffer"], I = [], P = Array.isArray;
+      (s.JS_SHA1_NO_NODE_JS || !P) && (P = function(a) {
+        return Object.prototype.toString.call(a) === "[object Array]";
+      });
+      var B = ArrayBuffer.isView;
+      _ && (s.JS_SHA1_NO_ARRAY_BUFFER_IS_VIEW || !B) && (B = function(a) {
+        return typeof a == "object" && a.buffer && a.buffer.constructor === ArrayBuffer;
+      });
+      var F = function(a) {
+        var h = typeof a;
+        if (h === "string")
+          return [a, !0];
+        if (h !== "object" || a === null)
+          throw new Error(e);
+        if (_ && a.constructor === ArrayBuffer)
+          return [new Uint8Array(a), !1];
+        if (!P(a) && !B(a))
+          throw new Error(e);
+        return [a, !1];
+      }, M = function(a) {
+        return function(h) {
+          return new g(!0).update(h)[a]();
+        };
+      }, W = function() {
+        var a = M("hex");
+        o && (a = q(a)), a.create = function() {
+          return new g();
+        }, a.update = function(p) {
+          return a.create().update(p);
+        };
+        for (var h = 0; h < R.length; ++h) {
+          var f = R[h];
+          a[f] = M(f);
+        }
+        return a;
+      }, q = function(a) {
+        var h = Kt, f = Kt.Buffer, p;
+        f.from && !s.JS_SHA1_NO_BUFFER_FROM ? p = f.from : p = function(b) {
+          return new f(b);
+        };
+        var w = function(b) {
+          if (typeof b == "string")
+            return h.createHash("sha1").update(b, "utf8").digest("hex");
+          if (b == null)
+            throw new Error(e);
+          return b.constructor === ArrayBuffer && (b = new Uint8Array(b)), P(b) || B(b) || b.constructor === f ? h.createHash("sha1").update(p(b)).digest("hex") : a(b);
+        };
+        return w;
+      }, E = function(a) {
+        return function(h, f) {
+          return new C(h, !0).update(f)[a]();
+        };
+      }, m = function() {
+        var a = E("hex");
+        a.create = function(p) {
+          return new C(p);
+        }, a.update = function(p, w) {
+          return a.create(p).update(w);
+        };
+        for (var h = 0; h < R.length; ++h) {
+          var f = R[h];
+          a[f] = E(f);
+        }
+        return a;
+      };
+      function g(a) {
+        a ? (I[0] = I[16] = I[1] = I[2] = I[3] = I[4] = I[5] = I[6] = I[7] = I[8] = I[9] = I[10] = I[11] = I[12] = I[13] = I[14] = I[15] = 0, this.blocks = I) : this.blocks = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], this.h0 = 1732584193, this.h1 = 4023233417, this.h2 = 2562383102, this.h3 = 271733878, this.h4 = 3285377520, this.block = this.start = this.bytes = this.hBytes = 0, this.finalized = this.hashed = !1, this.first = !0;
+      }
+      g.prototype.update = function(a) {
+        if (this.finalized)
+          throw new Error(t);
+        var h = F(a);
+        a = h[0];
+        for (var f = h[1], p, w = 0, b, A = a.length || 0, S = this.blocks; w < A; ) {
+          if (this.hashed && (this.hashed = !1, S[0] = this.block, this.block = S[16] = S[1] = S[2] = S[3] = S[4] = S[5] = S[6] = S[7] = S[8] = S[9] = S[10] = S[11] = S[12] = S[13] = S[14] = S[15] = 0), f)
+            for (b = this.start; w < A && b < 64; ++w)
+              p = a.charCodeAt(w), p < 128 ? S[b >>> 2] |= p << d[b++ & 3] : p < 2048 ? (S[b >>> 2] |= (192 | p >>> 6) << d[b++ & 3], S[b >>> 2] |= (128 | p & 63) << d[b++ & 3]) : p < 55296 || p >= 57344 ? (S[b >>> 2] |= (224 | p >>> 12) << d[b++ & 3], S[b >>> 2] |= (128 | p >>> 6 & 63) << d[b++ & 3], S[b >>> 2] |= (128 | p & 63) << d[b++ & 3]) : (p = 65536 + ((p & 1023) << 10 | a.charCodeAt(++w) & 1023), S[b >>> 2] |= (240 | p >>> 18) << d[b++ & 3], S[b >>> 2] |= (128 | p >>> 12 & 63) << d[b++ & 3], S[b >>> 2] |= (128 | p >>> 6 & 63) << d[b++ & 3], S[b >>> 2] |= (128 | p & 63) << d[b++ & 3]);
+          else
+            for (b = this.start; w < A && b < 64; ++w)
+              S[b >>> 2] |= a[w] << d[b++ & 3];
+          this.lastByteIndex = b, this.bytes += b - this.start, b >= 64 ? (this.block = S[16], this.start = b - 64, this.hash(), this.hashed = !0) : this.start = b;
+        }
+        return this.bytes > 4294967295 && (this.hBytes += this.bytes / 4294967296 << 0, this.bytes = this.bytes % 4294967296), this;
+      }, g.prototype.finalize = function() {
+        if (!this.finalized) {
+          this.finalized = !0;
+          var a = this.blocks, h = this.lastByteIndex;
+          a[16] = this.block, a[h >>> 2] |= v[h & 3], this.block = a[16], h >= 56 && (this.hashed || this.hash(), a[0] = this.block, a[16] = a[1] = a[2] = a[3] = a[4] = a[5] = a[6] = a[7] = a[8] = a[9] = a[10] = a[11] = a[12] = a[13] = a[14] = a[15] = 0), a[14] = this.hBytes << 3 | this.bytes >>> 29, a[15] = this.bytes << 3, this.hash();
+        }
+      }, g.prototype.hash = function() {
+        var a = this.h0, h = this.h1, f = this.h2, p = this.h3, w = this.h4, b, A, S, D = this.blocks;
+        for (A = 16; A < 80; ++A)
+          S = D[A - 3] ^ D[A - 8] ^ D[A - 14] ^ D[A - 16], D[A] = S << 1 | S >>> 31;
+        for (A = 0; A < 20; A += 5)
+          b = h & f | ~h & p, S = a << 5 | a >>> 27, w = S + b + w + 1518500249 + D[A] << 0, h = h << 30 | h >>> 2, b = a & h | ~a & f, S = w << 5 | w >>> 27, p = S + b + p + 1518500249 + D[A + 1] << 0, a = a << 30 | a >>> 2, b = w & a | ~w & h, S = p << 5 | p >>> 27, f = S + b + f + 1518500249 + D[A + 2] << 0, w = w << 30 | w >>> 2, b = p & w | ~p & a, S = f << 5 | f >>> 27, h = S + b + h + 1518500249 + D[A + 3] << 0, p = p << 30 | p >>> 2, b = f & p | ~f & w, S = h << 5 | h >>> 27, a = S + b + a + 1518500249 + D[A + 4] << 0, f = f << 30 | f >>> 2;
+        for (; A < 40; A += 5)
+          b = h ^ f ^ p, S = a << 5 | a >>> 27, w = S + b + w + 1859775393 + D[A] << 0, h = h << 30 | h >>> 2, b = a ^ h ^ f, S = w << 5 | w >>> 27, p = S + b + p + 1859775393 + D[A + 1] << 0, a = a << 30 | a >>> 2, b = w ^ a ^ h, S = p << 5 | p >>> 27, f = S + b + f + 1859775393 + D[A + 2] << 0, w = w << 30 | w >>> 2, b = p ^ w ^ a, S = f << 5 | f >>> 27, h = S + b + h + 1859775393 + D[A + 3] << 0, p = p << 30 | p >>> 2, b = f ^ p ^ w, S = h << 5 | h >>> 27, a = S + b + a + 1859775393 + D[A + 4] << 0, f = f << 30 | f >>> 2;
+        for (; A < 60; A += 5)
+          b = h & f | h & p | f & p, S = a << 5 | a >>> 27, w = S + b + w - 1894007588 + D[A] << 0, h = h << 30 | h >>> 2, b = a & h | a & f | h & f, S = w << 5 | w >>> 27, p = S + b + p - 1894007588 + D[A + 1] << 0, a = a << 30 | a >>> 2, b = w & a | w & h | a & h, S = p << 5 | p >>> 27, f = S + b + f - 1894007588 + D[A + 2] << 0, w = w << 30 | w >>> 2, b = p & w | p & a | w & a, S = f << 5 | f >>> 27, h = S + b + h - 1894007588 + D[A + 3] << 0, p = p << 30 | p >>> 2, b = f & p | f & w | p & w, S = h << 5 | h >>> 27, a = S + b + a - 1894007588 + D[A + 4] << 0, f = f << 30 | f >>> 2;
+        for (; A < 80; A += 5)
+          b = h ^ f ^ p, S = a << 5 | a >>> 27, w = S + b + w - 899497514 + D[A] << 0, h = h << 30 | h >>> 2, b = a ^ h ^ f, S = w << 5 | w >>> 27, p = S + b + p - 899497514 + D[A + 1] << 0, a = a << 30 | a >>> 2, b = w ^ a ^ h, S = p << 5 | p >>> 27, f = S + b + f - 899497514 + D[A + 2] << 0, w = w << 30 | w >>> 2, b = p ^ w ^ a, S = f << 5 | f >>> 27, h = S + b + h - 899497514 + D[A + 3] << 0, p = p << 30 | p >>> 2, b = f ^ p ^ w, S = h << 5 | h >>> 27, a = S + b + a - 899497514 + D[A + 4] << 0, f = f << 30 | f >>> 2;
+        this.h0 = this.h0 + a << 0, this.h1 = this.h1 + h << 0, this.h2 = this.h2 + f << 0, this.h3 = this.h3 + p << 0, this.h4 = this.h4 + w << 0;
+      }, g.prototype.hex = function() {
+        this.finalize();
+        var a = this.h0, h = this.h1, f = this.h2, p = this.h3, w = this.h4;
+        return u[a >>> 28 & 15] + u[a >>> 24 & 15] + u[a >>> 20 & 15] + u[a >>> 16 & 15] + u[a >>> 12 & 15] + u[a >>> 8 & 15] + u[a >>> 4 & 15] + u[a & 15] + u[h >>> 28 & 15] + u[h >>> 24 & 15] + u[h >>> 20 & 15] + u[h >>> 16 & 15] + u[h >>> 12 & 15] + u[h >>> 8 & 15] + u[h >>> 4 & 15] + u[h & 15] + u[f >>> 28 & 15] + u[f >>> 24 & 15] + u[f >>> 20 & 15] + u[f >>> 16 & 15] + u[f >>> 12 & 15] + u[f >>> 8 & 15] + u[f >>> 4 & 15] + u[f & 15] + u[p >>> 28 & 15] + u[p >>> 24 & 15] + u[p >>> 20 & 15] + u[p >>> 16 & 15] + u[p >>> 12 & 15] + u[p >>> 8 & 15] + u[p >>> 4 & 15] + u[p & 15] + u[w >>> 28 & 15] + u[w >>> 24 & 15] + u[w >>> 20 & 15] + u[w >>> 16 & 15] + u[w >>> 12 & 15] + u[w >>> 8 & 15] + u[w >>> 4 & 15] + u[w & 15];
+      }, g.prototype.toString = g.prototype.hex, g.prototype.digest = function() {
+        this.finalize();
+        var a = this.h0, h = this.h1, f = this.h2, p = this.h3, w = this.h4;
+        return [
+          a >>> 24 & 255,
+          a >>> 16 & 255,
+          a >>> 8 & 255,
+          a & 255,
+          h >>> 24 & 255,
+          h >>> 16 & 255,
+          h >>> 8 & 255,
+          h & 255,
+          f >>> 24 & 255,
+          f >>> 16 & 255,
+          f >>> 8 & 255,
+          f & 255,
+          p >>> 24 & 255,
+          p >>> 16 & 255,
+          p >>> 8 & 255,
+          p & 255,
+          w >>> 24 & 255,
+          w >>> 16 & 255,
+          w >>> 8 & 255,
+          w & 255
+        ];
+      }, g.prototype.array = g.prototype.digest, g.prototype.arrayBuffer = function() {
+        this.finalize();
+        var a = new ArrayBuffer(20), h = new DataView(a);
+        return h.setUint32(0, this.h0), h.setUint32(4, this.h1), h.setUint32(8, this.h2), h.setUint32(12, this.h3), h.setUint32(16, this.h4), a;
+      };
+      function C(a, h) {
+        var f, p = F(a);
+        if (a = p[0], p[1]) {
+          var w = [], b = a.length, A = 0, S;
+          for (f = 0; f < b; ++f)
+            S = a.charCodeAt(f), S < 128 ? w[A++] = S : S < 2048 ? (w[A++] = 192 | S >>> 6, w[A++] = 128 | S & 63) : S < 55296 || S >= 57344 ? (w[A++] = 224 | S >>> 12, w[A++] = 128 | S >>> 6 & 63, w[A++] = 128 | S & 63) : (S = 65536 + ((S & 1023) << 10 | a.charCodeAt(++f) & 1023), w[A++] = 240 | S >>> 18, w[A++] = 128 | S >>> 12 & 63, w[A++] = 128 | S >>> 6 & 63, w[A++] = 128 | S & 63);
+          a = w;
+        }
+        a.length > 64 && (a = new g(!0).update(a).array());
+        var D = [], Ee = [];
+        for (f = 0; f < 64; ++f) {
+          var de = a[f] || 0;
+          D[f] = 92 ^ de, Ee[f] = 54 ^ de;
+        }
+        g.call(this, h), this.update(Ee), this.oKeyPad = D, this.inner = !0, this.sharedMemory = h;
+      }
+      C.prototype = new g(), C.prototype.finalize = function() {
+        if (g.prototype.finalize.call(this), this.inner) {
+          this.inner = !1;
+          var a = this.array();
+          g.call(this, this.sharedMemory), this.update(this.oKeyPad), this.update(a), g.prototype.finalize.call(this);
+        }
+      };
+      var T = W();
+      T.sha1 = T, T.sha1.hmac = m(), l ? c.exports = T : s.sha1 = T;
+    })();
+  }(Xe)), Xe.exports;
+}
+var ji = Wi();
+const Q = Oe("p2pt"), Gt = "^", $t = 16e3;
+async function Ki(c) {
+  try {
+    return await Ii(c, "hex");
+  } catch {
+    return ji.sha1(c);
+  }
+}
+const zi = 12 * 1024, Gi = 60 * 1e3, $i = 256 * 1024, Vt = 25, Vi = 80, Ji = 2 * 1024 * 1024, Yi = 768 * 1024, Xi = 2 * 1024 * 1024, Qe = 3;
+function le() {
+  const c = globalThis.crypto?.subtle;
+  if (!c)
+    throw new Error("Web Crypto is required for hidden service encryption");
+  return c;
+}
+function Ae(c) {
+  if (typeof Buffer < "u")
+    return Buffer.from(c instanceof Uint8Array ? c : new Uint8Array(c)).toString("base64");
+  let e = "";
+  const t = c instanceof Uint8Array ? c : new Uint8Array(c);
+  for (let n = 0; n < t.length; n++)
+    e += String.fromCharCode(t[n]);
+  return btoa(e);
+}
+function we(c) {
+  if (typeof Buffer < "u")
+    return new Uint8Array(Buffer.from(c, "base64"));
+  const e = atob(c), t = new Uint8Array(e.length);
+  for (let n = 0; n < e.length; n++)
+    t[n] = e.charCodeAt(n);
+  return t;
+}
+function ue(c) {
+  return c.buffer.slice(c.byteOffset, c.byteOffset + c.byteLength);
+}
+function on(c) {
+  return c.replace(/-----BEGIN [^-]+-----/g, "").replace(/-----END [^-]+-----/g, "").replace(/\s+/g, "");
+}
+function Qi(c, e) {
+  const n = Ae(c).match(/.{1,64}/g) ?? [];
+  return `-----BEGIN ${e}-----
+${n.join(`
+`)}
+-----END ${e}-----`;
+}
+async function an(c) {
+  return typeof c != "string" ? c : await le().importKey(
+    "spki",
+    ue(we(on(c))),
+    {
+      name: "RSA-OAEP",
+      hash: "SHA-256"
+    },
+    !0,
+    ["encrypt"]
+  );
+}
+async function cn(c) {
+  return typeof c != "string" ? c : await le().importKey(
+    "pkcs8",
+    ue(we(on(c))),
+    {
+      name: "RSA-OAEP",
+      hash: "SHA-256"
+    },
+    !0,
+    ["decrypt"]
+  );
+}
+async function Zi(c) {
+  const e = await le().exportKey("spki", c);
+  return Qi(e, "PUBLIC KEY");
+}
+async function es() {
+  return await le().generateKey(
+    {
+      name: "RSA-OAEP",
+      modulusLength: 2048,
+      publicExponent: new Uint8Array([1, 0, 1]),
+      hash: "SHA-256"
+    },
+    !0,
+    ["encrypt", "decrypt"]
+  );
+}
+async function Jt(c, e) {
+  const t = le(), n = await an(e), s = await t.generateKey(
+    {
+      name: "AES-GCM",
+      length: 256
+    },
+    !0,
+    ["encrypt", "decrypt"]
+  ), r = ne(12), o = new TextEncoder().encode(JSON.stringify(c)), l = await t.encrypt(
+    {
+      name: "AES-GCM",
+      iv: ue(r)
+    },
+    s,
+    o
+  ), _ = await t.exportKey("raw", s), u = await t.encrypt(
+    {
+      name: "RSA-OAEP"
+    },
+    n,
+    _
+  );
+  return {
+    encryptedKey: Ae(u),
+    iv: Ae(r),
+    ciphertext: Ae(l)
+  };
+}
+async function Yt(c, e) {
+  const t = le(), n = await cn(e), s = await t.decrypt(
+    {
+      name: "RSA-OAEP"
+    },
+    n,
+    ue(we(c.encryptedKey))
+  ), r = await t.importKey(
+    "raw",
+    s,
+    {
+      name: "AES-GCM"
+    },
+    !1,
+    ["decrypt"]
+  ), o = await t.decrypt(
+    {
+      name: "AES-GCM",
+      iv: ue(we(c.iv))
+    },
+    r,
+    ue(we(c.ciphertext))
+  );
+  return JSON.parse(new TextDecoder().decode(o));
+}
+class ts {
+  constructor() {
+    this.chunks = /* @__PURE__ */ new Map();
+  }
+  async put(e) {
+    this.chunks.set(e.offset, e.chunk.slice());
+  }
+  async getRange(e, t) {
+    return t <= e ? [] : [...this.chunks.entries()].sort((n, s) => n[0] - s[0]).map(([n, s]) => ({ offset: n, chunk: s.slice() })).filter((n) => n.offset < t && n.offset + n.chunk.length > e);
+  }
+  async clear() {
+    this.chunks.clear();
+  }
+}
+class ns {
+  constructor(e) {
+    this.transferId = e, this.databasePromise = this._open();
+  }
+  async put(e) {
+    const n = (await this.databasePromise).transaction("chunks", "readwrite");
+    n.objectStore("chunks").put({
+      transferId: this.transferId,
+      offset: e.offset,
+      chunk: e.chunk.buffer.slice(e.chunk.byteOffset, e.chunk.byteOffset + e.chunk.byteLength)
+    }), await this._waitForTransaction(n);
+  }
+  async getRange(e, t) {
+    if (t <= e)
+      return [];
+    const o = (await this.databasePromise).transaction("chunks", "readonly").objectStore("chunks").getAll(IDBKeyRange.bound([this.transferId, e], [this.transferId, Math.max(e, t - 1)]));
+    return (await this._waitForRequest(o)).map((_) => ({
+      offset: _.offset,
+      chunk: new Uint8Array(_.chunk)
+    }));
+  }
+  async clear() {
+    const t = (await this.databasePromise).transaction("chunks", "readwrite"), s = t.objectStore("chunks").delete(IDBKeyRange.bound([this.transferId, 0], [this.transferId, Number.MAX_SAFE_INTEGER]));
+    await this._waitForRequest(s), await this._waitForTransaction(t);
+  }
+  async _open() {
+    const e = indexedDB.open("ghostmesh-file-cache", 1);
+    return e.onupgradeneeded = () => {
+      const t = e.result;
+      t.objectStoreNames.contains("chunks") || t.createObjectStore("chunks", { keyPath: ["transferId", "offset"] });
+    }, await this._waitForRequest(e);
+  }
+  _waitForRequest(e) {
+    return new Promise((t, n) => {
+      e.onsuccess = () => t(e.result), e.onerror = () => n(e.error ?? new Error("IndexedDB request failed"));
+    });
+  }
+  _waitForTransaction(e) {
+    return new Promise((t, n) => {
+      e.oncomplete = () => t(), e.onabort = () => n(e.error ?? new Error("IndexedDB transaction aborted")), e.onerror = () => n(e.error ?? new Error("IndexedDB transaction failed"));
+    });
+  }
+}
+function is(c, e, t) {
+  return e === "incoming" && typeof indexedDB < "u" && t >= Ji ? new ns(c) : new ts();
+}
+class Xt extends it {
+  constructor(e, t, n, s, r, o) {
+    super(), this.transferId = e.transferId, this.name = e.name, this.mimeType = e.mimeType, this.size = e.size, this.chunkSize = e.chunkSize, this.totalChunks = e.totalChunks, this.receivedBytes = e.receivedBytes, this.metadata = e.metadata, this.peerId = t, this.direction = n, this.status = n === "incoming" ? "offered" : "sending", this._subscribers = /* @__PURE__ */ new Set(), this._receivedOffsets = /* @__PURE__ */ new Set(), this._store = is(e.transferId, n, e.size), this._writeQueue = Promise.resolve(), this._completionSettled = !1, this._sourceBlob = s, this._requestRange = r, this._controller = o, this._isPaused = !1, this._isCanceled = !1, this._completionPromise = new Promise((l, _) => {
+      this._resolveCompletion = l, this._rejectCompletion = _;
+    });
+  }
+  get progress() {
+    return this.size <= 0 ? 0 : Math.min(1, this.receivedBytes / this.size);
+  }
+  get canceled() {
+    return this._isCanceled;
+  }
+  on(e, t) {
+    return super.on(e, t);
+  }
+  async waitUntilComplete() {
+    await this._completionPromise;
+  }
+  pause() {
+    this._isCanceled || this.status === "complete" || this.status === "sent" || this.status === "error" || (this._isPaused = !0, this.status = "paused", this._pausePromise || (this._pausePromise = new Promise((e) => {
+      this._resumePause = e;
+    })), this._controller?.pause?.(), this.emit("pause", this));
+  }
+  resume() {
+    !this._isPaused || this._isCanceled || (this._isPaused = !1, this.status = this.direction === "incoming" ? "streaming" : "sending", this._resumePause?.(), this._pausePromise = void 0, this._resumePause = void 0, this._controller?.resume?.(), this.emit("resume", this));
+  }
+  async cancel(e = "Transfer canceled") {
+    this._isCanceled || this.status === "complete" || this.status === "sent" || this.status === "error" || (this._cancelLocal(e), await this._controller?.cancel?.(e));
+  }
+  async destroy() {
+    await this.cancel("Transfer destroyed");
+  }
+  _cancelLocal(e) {
+    this._isCanceled || this.status === "complete" || this.status === "sent" || this.status === "error" || (this._isCanceled = !0, this.status = "canceled", this._resumePause?.(), this._pausePromise = void 0, this._resumePause = void 0, this._completionSettled || (this._completionSettled = !0, this._rejectCompletion(new Error(e))), this.emit("cancel", this));
+  }
+  stream(e = {}) {
+    const t = globalThis.ReadableStream;
+    if (typeof t > "u")
+      throw new Error("ReadableStream is not available in this environment");
+    const n = Math.max(0, e.start ?? 0), s = Math.min(this.size, e.end ?? this.size);
+    if (this._sourceBlob)
+      return this._streamBlobRange(this._sourceBlob, n, s);
+    const r = this;
+    return new t({
+      async start(o) {
+        const l = { controller: o, start: n, end: s };
+        r._subscribers.add(l);
+        try {
+          r.direction === "incoming" && r.status !== "complete" && r._requestRange && n > 0 && await r._requestRange(n, Math.min(s, n + r.chunkSize * 8));
+          const _ = await r._getStoredRange(n, s);
+          for (const u of _)
+            r._enqueueRecord(l, u);
+        } catch (_) {
+          o.error(_), r._subscribers.delete(l);
+          return;
+        }
+        (r.status === "complete" || r.status === "sent") && (o.close(), r._subscribers.delete(l)), r.status === "error" && (o.error(new Error(`File session ${r.transferId} failed`)), r._subscribers.delete(l));
+      },
+      cancel() {
+        for (const o of r._subscribers)
+          o.start === n && o.end === s && r._subscribers.delete(o);
+      }
+    });
+  }
+  async blob() {
+    if (this._sourceBlob)
+      return this._sourceBlob;
+    if (this.status === "canceled")
+      throw new Error(`File session ${this.transferId} was canceled`);
+    this.status !== "complete" && this.status !== "sent" && await this._completionPromise;
+    const e = await this._getStoredRange(0, this.size);
+    return new Blob(e.map((t) => this._toArrayBuffer(t.chunk)), {
+      type: this.mimeType || "application/octet-stream"
+    });
+  }
+  async readRange(e = 0, t = this.size) {
+    if (this._sourceBlob)
+      return new Uint8Array(await this._sourceBlob.slice(e, t).arrayBuffer());
+    if (this.status === "canceled")
+      throw new Error(`File session ${this.transferId} was canceled`);
+    const n = await this._getStoredRange(e, t), s = n.reduce((l, _) => {
+      const u = Math.max(e, _.offset), v = Math.min(t, _.offset + _.chunk.length);
+      return l + Math.max(0, v - u);
+    }, 0), r = new Uint8Array(s);
+    let o = 0;
+    for (const l of n) {
+      const _ = Math.max(e, l.offset), u = Math.min(t, l.offset + l.chunk.length);
+      if (_ >= u)
+        continue;
+      const v = _ - l.offset, d = u - l.offset;
+      r.set(l.chunk.slice(v, d), o), o += d - v;
+    }
+    return r;
+  }
+  async objectURL() {
+    return this._objectUrl || (this._objectUrl = URL.createObjectURL(await this.blob())), this._objectUrl;
+  }
+  async streamTo(e) {
+    if (typeof window > "u")
+      throw new Error("streamTo() is only available in browser environments");
+    if (typeof HTMLImageElement < "u" && e instanceof HTMLImageElement) {
+      e.src = await this.objectURL();
+      return;
+    }
+    const t = e, n = this.mimeType.startsWith("video/");
+    if (!(typeof MediaSource < "u" && !!this.mimeType && MediaSource.isTypeSupported(this.mimeType))) {
+      if (n) {
+        await this._streamVideoWithProgressiveBlob(t);
+        return;
+      }
+      t.src = await this.objectURL();
+      return;
+    }
+    const r = new MediaSource(), o = URL.createObjectURL(r);
+    t.src = o;
+    try {
+      await new Promise((l, _) => {
+        let u = !1;
+        const v = () => {
+          u || (u = !0, l());
+        }, d = (R) => {
+          u || (u = !0, _(R));
+        };
+        t.addEventListener("error", () => {
+          d(t.error ?? new Error(`Failed to play ${this.name}`));
+        }, { once: !0 }), r.addEventListener("sourceopen", () => {
+          try {
+            const R = r.addSourceBuffer(this.mimeType);
+            R.mode = "sequence";
+            const I = [];
+            let P = !1, B = !1;
+            const F = async () => {
+              if (!(P || R.updating)) {
+                if (I.length > 0) {
+                  const q = I.shift();
+                  R.appendBuffer(q);
+                  return;
+                }
+                B && r.readyState === "open" && (r.endOfStream(), v());
+              }
+            };
+            R.addEventListener("error", () => {
+              d(new Error(`MediaSource append failed for ${this.name}`));
+            }), R.addEventListener("updateend", () => {
+              F();
+            });
+            const M = this.stream().getReader();
+            (async () => {
+              P = !0;
+              try {
+                for (; ; ) {
+                  const { value: q, done: E } = await M.read();
+                  if (E) {
+                    B = !0;
+                    break;
+                  }
+                  I.push(this._toArrayBuffer(q)), await F();
+                }
+              } catch (q) {
+                d(q);
+                return;
+              } finally {
+                P = !1, await F();
+              }
+            })();
+          } catch (R) {
+            d(R);
+          }
+        }, { once: !0 });
+      });
+    } catch {
+      if (URL.revokeObjectURL(o), n) {
+        await this._streamVideoWithProgressiveBlob(t);
+        return;
+      }
+      t.src = await this.objectURL();
+      return;
+    }
+  }
+  _appendChunk(e, t, n, s = !0) {
+    if (this._isCanceled || s && this._receivedOffsets.has(t))
+      return;
+    s && this._receivedOffsets.add(t), this.status = this.direction === "incoming" ? "streaming" : "sending", this.receivedBytes = Math.min(this.size, Math.max(this.receivedBytes, t + e.length));
+    const r = {
+      chunk: e.slice(),
+      offset: t
+    };
+    s && (this._writeQueue = this._writeQueue.then(async () => {
+      await this._store.put(r);
+    }).catch((o) => {
+      this._markError(o instanceof Error ? o : new Error(String(o)));
+    }));
+    for (const o of this._subscribers)
+      this._enqueueRecord(o, r);
+    this.emit("progress", this, n);
+  }
+  _markComplete() {
+    this._finalizeCompletion();
+  }
+  _markError(e) {
+    if (!this._isCanceled) {
+      this.status = "error";
+      for (const t of this._subscribers)
+        t.controller.error(e);
+      this._subscribers.clear(), this._completionSettled || (this._completionSettled = !0, this._rejectCompletion(e)), this.emit("error", e, this);
+    }
+  }
+  _enqueueRecord(e, t) {
+    const n = t.offset, s = t.offset + t.chunk.length, r = Math.max(e.start, n), o = Math.min(e.end, s);
+    if (r >= o)
+      return;
+    const l = r - n, _ = o - n;
+    e.controller.enqueue(t.chunk.slice(l, _));
+  }
+  _toArrayBuffer(e) {
+    return e.buffer.slice(e.byteOffset, e.byteOffset + e.byteLength);
+  }
+  _streamBlobRange(e, t, n) {
+    return e.slice(t, n).stream();
+  }
+  async _streamVideoWithProgressiveBlob(e) {
+    let t = 0, n, s = !1;
+    const r = () => {
+      n && (URL.revokeObjectURL(n), n = void 0);
+    }, o = async (_ = !1) => {
+      if (s)
+        return;
+      const u = this.receivedBytes;
+      if (u <= 0 || !_ && (u < Yi || u - t < Xi))
+        return;
+      s = !0;
+      const v = e.currentTime || 0, d = e.paused;
+      try {
+        const R = await this.readRange(0, u);
+        if (R.byteLength <= 0)
+          return;
+        const I = URL.createObjectURL(new Blob([this._toArrayBuffer(R)], {
+          type: this.mimeType || "video/mp4"
+        }));
+        e.src = I, e.load(), e.addEventListener("loadedmetadata", () => {
+          try {
+            v > 0 && Number.isFinite(e.duration) && (e.currentTime = Math.min(v, Math.max(0, e.duration - 0.25)));
+          } catch {
+          }
+          (!d || v > 0) && e.play().catch(() => {
+          });
+        }, { once: !0 }), r(), n = I, t = u;
+      } finally {
+        s = !1;
+      }
+    }, l = () => {
+      o();
+    };
+    this.on("progress", l);
+    try {
+      await o(!0), await this._completionPromise.catch(() => {
+      }), await o(!0);
+    } finally {
+      this.removeListener("progress", l);
+    }
+  }
+  async _getStoredRange(e, t) {
+    return await this._writeQueue, await this._store.getRange(e, t);
+  }
+  async _waitWhilePaused() {
+    this._pausePromise && await this._pausePromise;
+  }
+  async _finalizeCompletion() {
+    if (!this._isCanceled) {
+      try {
+        await this._writeQueue;
+      } catch (e) {
+        this._markError(e instanceof Error ? e : new Error(String(e)));
+        return;
+      }
+      this.status = this.direction === "incoming" ? "complete" : "sent";
+      for (const e of this._subscribers)
+        e.controller.close();
+      this._subscribers.clear(), this._completionSettled || (this._completionSettled = !0, this._resolveCompletion()), this.emit("complete", this);
+    }
+  }
+}
+class cs extends it {
+  /**
+   *
+   * @param announceURLs List of announce tracker URLs
+   * @param identifierString Identifier used to discover peers in the network
+   */
+  constructor(e = [], t = "") {
+    super(), this.announceURLs = [...e], this.trackers = {}, this.peers = {}, this.msgChunks = {}, this.responseWaiting = {}, this.pendingRequests = {}, this.incomingFiles = {}, this.outgoingFiles = {}, this._rtcConfig = {
+      iceServers: []
+    }, this._options = {
+      timeout: Gi,
+      onion: !1
+    }, this._identity = {}, this._hiddenService = {
+      entryPeers: [],
+      services: {},
+      minHops: Qe,
+      responseDelayMs: [1e3, 5e3]
+    }, this.hiddenServiceHandlers = {}, t && this.setIdentifier(t), this._peerIdBuffer = ne(20), this._peerId = te(this._peerIdBuffer), this._peerIdBinary = Se(this._peerId), Q("my peer id: " + this._peerId);
+  }
+  on(e, t) {
+    return super.on(e, t);
+  }
+  /**
+   * Set the identifier string used to discover peers in the network
+   */
+  async setIdentifier(e) {
+    this.identifierString = e, this.infoHash = Ki(e), this._infoHashBuffer = tn((await this.infoHash).toLowerCase()), this._infoHashBinary = Se((await this.infoHash).toLowerCase());
+  }
+  /**
+   * Configure runtime options for transport and default routing.
+   */
+  setOptions(e) {
+    const t = e.onion ?? e.Onion;
+    this._rtcConfig = {
+      ...this._rtcConfig,
+      ...e,
+      iceServers: e.iceServers ? [...e.iceServers] : [...this._rtcConfig.iceServers ?? []]
+    }, "timeout" in e && typeof e.timeout == "number" && Number.isFinite(e.timeout) && (this._options.timeout = Math.max(1e3, e.timeout)), t === !1 ? this._options.onion = !1 : t && (this._options.onion = {
+      ...this._options.onion || {},
+      ...t
+    }), e.identity && (this._identity = {
+      ...this._identity,
+      ...e.identity
+    }), e.hiddenService && (this._hiddenService = {
+      ...this._hiddenService,
+      ...e.hiddenService,
+      entryPeers: e.hiddenService.entryPeers ? [...e.hiddenService.entryPeers] : [...this._hiddenService.entryPeers ?? []],
+      services: e.hiddenService.services ? { ...this._hiddenService.services ?? {}, ...e.hiddenService.services } : { ...this._hiddenService.services ?? {} }
+    });
+  }
+  /**
+   * Connect to network and start discovering peers
+   */
+  async start() {
+    await this.infoHash, await this._ensureWebRTCImplementation(), this.on("peer", (e) => {
+      let t = !1;
+      this.peers[e.id] || (t = !0, this.peers[e.id] = {}, this.responseWaiting[e.id] = {}), e.on("connect", () => {
+        this.peers[e.id] || (this.peers[e.id] = {}), this.responseWaiting[e.id] || (this.responseWaiting[e.id] = {}), this.peers[e.id][e.channelName] = e, t && this.emit("peerconnect", e);
+      }), e.on("data", (n) => {
+        this.emit("data", e, n);
+        let s = n;
+        if (ArrayBuffer.isView(s) && (s = nn(s)), Q("got a message from " + e.id), typeof s == "string" && s[0] === Gt)
+          try {
+            const r = JSON.parse(s.slice(1));
+            e.respond = this._peerRespond(e, r.id);
+            const o = this._chunkHandler(r);
+            if (o !== !1) {
+              let l = o;
+              r.o && (l = JSON.parse(o)), this._isOnionPacket(l) ? this._handleOnionPacket(e, l) : this._isRoutedPacket(l) ? this._handleRoutedPacket(e, l) : this._isHiddenServiceRequestPacket(l) ? this._handleHiddenServiceRequest(e, l) : this._isFileTransferPacket(l) ? this._handleFileTransferPacket(e, l) : this.responseWaiting[e.id]?.[String(r.id)] ? (this.responseWaiting[e.id][String(r.id)]([e, l]), delete this.responseWaiting[e.id][String(r.id)]) : this.emit("msg", e, l), this._destroyChunks(r.id);
+            }
+          } catch (r) {
+            console.log(r);
+          }
+      }), e.on("error", (n) => {
+        this._removePeer(e), Q("Error in connection : " + n);
+      }), e.on("close", () => {
+        this._removePeer(e), Q("Connection closed with " + e.id);
+      }), e.on("disconnect", () => {
+        this._removePeer(e), Q("Connection disconnected with " + e.id);
+      });
+    }), this.on("update", (e) => {
+      const t = this.trackers[this.announceURLs.indexOf(e.announce)];
+      this.emit(
+        "trackerconnect",
+        t,
+        this.getTrackerStats()
+      );
+    }), this.on("warning", (e) => {
+      this.emit(
+        "trackerwarning",
+        e,
+        this.getTrackerStats()
+      );
+    }), this._fetchPeers();
+  }
+  /**
+   * Add a tracker
+   */
+  addTracker(e) {
+    if (this.announceURLs.indexOf(e) !== -1)
+      throw new Error("Tracker already added");
+    const t = this.announceURLs.push(e) - 1;
+    this.trackers[t] = new Ne(this, e), this.trackers[t].announce(this._defaultAnnounceOpts());
+  }
+  /**
+   * Remove a tracker without destroying peers
+   */
+  removeTracker(e) {
+    const t = this.announceURLs.indexOf(e);
+    t !== -1 && (this.trackers[t].peers = [], this.trackers[t].destroy(), delete this.trackers[t], this.announceURLs.splice(t, 1), this._reindexTrackers(t));
+  }
+  /**
+   * Remove a peer from the list if all channels are closed
+   */
+  _removePeer(e) {
+    if (!this.peers[e.id])
+      return !1;
+    delete this.peers[e.id][e.channelName], Object.keys(this.peers[e.id]).length === 0 && (this.emit("peerclose", e), delete this.responseWaiting[e.id], delete this.peers[e.id]);
+  }
+  /**
+   * Send a msg and get response for it
+   */
+  send(e, t, n = "") {
+    return n === "" && this._options.onion ? this._sendRoutedRequest(e.id, t) : new Promise((s, r) => {
+      let o;
+      try {
+        e = this._getConnectedPeer(e), this.responseWaiting[e.id] || (this.responseWaiting[e.id] = {}), o = this._createMessageEnvelope(t, n), this.responseWaiting[e.id][String(o.id)] = s;
+      } catch (l) {
+        r(Error("Connection to peer closed" + l));
+        return;
+      }
+      this._sendEnvelope(e, o, !0).then(() => {
+        Q("sent a message to " + e.id);
+      }).catch((l) => {
+        delete this.responseWaiting[e.id][String(o.id)], r(Error("Connection to peer closed" + l));
+      });
+    });
+  }
+  /**
+   * Send a multi-hop packet through intermediate peers.
+   */
+  sendOnion(e, t, n = {}) {
+    const s = this._resolveOnionRoute(e, n), r = this._createPacketId();
+    return this._sendViaRoute(s, t, r, n.ttl, !0), {
+      circuitId: r,
+      route: s
+    };
+  }
+  /**
+   * Send a file in progressive chunks.
+   */
+  async sendFile(e, t, n = {}) {
+    const s = this._getConnectedPeer(e), r = Math.max(1024, n.chunkSize ?? zi), o = this._createPacketId(), l = Math.max(1, Math.ceil(t.size / r)), _ = this._resolveConfiguredRoute(s.id), u = {
+      transferId: o,
+      name: t instanceof File ? t.name : `ghostmesh-${o}`,
+      mimeType: t.type || "application/octet-stream",
+      size: t.size,
+      chunkSize: r,
+      totalChunks: l,
+      receivedBytes: 0,
+      metadata: n.metadata
+    }, v = new Xt(
+      u,
+      s.id,
+      "outgoing",
+      t,
+      void 0,
+      {
+        cancel: async (d) => {
+          try {
+            await this._sendInternalMessage(s.id, {
+              __ghostmeshInternal: "file-cancel",
+              transferId: o,
+              reason: d
+            }, _, !0);
+          } catch {
+          }
+          delete this.outgoingFiles[o];
+        }
+      }
+    );
+    return this.outgoingFiles[o] = v, this._runOutgoingFileTransfer(v, s.id, t, u, _), v;
+  }
+  handleHiddenService(e, t) {
+    this.hiddenServiceHandlers[e] = t;
+  }
+  async requestHiddenService(e, t, n = {}) {
+    const s = n.entryPeerId ? [n.entryPeerId] : this._hiddenService.entryPeers ?? [];
+    if (s.length === 0)
+      throw new Error("No hidden service entry peer configured");
+    const r = s[Math.floor(Math.random() * s.length)], o = this._getPeerById(r), l = n.masterPublicKey ?? this._hiddenService.masterPublicKey;
+    if (!l)
+      throw new Error("Hidden service requests require masterPublicKey");
+    const _ = this._identity.publicKey && this._identity.privateKey ? {
+      publicKey: await an(this._identity.publicKey),
+      privateKey: await cn(this._identity.privateKey)
+    } : await es(), u = await Zi(_.publicKey), v = this._createPacketId(), d = this._createPacketId(), R = Math.max(1, n.minHops ?? this._hiddenService.minHops ?? Qe), I = this._padHiddenServicePacket({
+      __ghostmeshInternal: "hidden-service-request",
+      service: n.serviceName ?? e ?? this._hiddenService.serviceName,
+      requestId: v,
+      nonce: d,
+      clientPublicKey: u,
+      requestedHops: R,
+      body: await Jt(t, l)
+    }, n.fixedPacketBytes ?? this._hiddenService.fixedPacketBytes), [, P] = await this.send(o, I);
+    if (!this._isHiddenServiceResponsePacket(P))
+      throw new Error("Entry peer returned an invalid hidden service response");
+    if (P.requestId !== v || P.nonce !== d)
+      throw new Error("Hidden service response nonce mismatch");
+    return await Yt(P.body, _.privateKey);
+  }
+  /**
+   * Request more peers
+   */
+  requestMorePeers() {
+    return new Promise((e) => {
+      for (const t in this.trackers)
+        this.trackers[Number(t)].announce(this._defaultAnnounceOpts());
+      e(this.peers);
+    });
+  }
+  /**
+   * Get basic stats about tracker connections
+   */
+  getTrackerStats() {
+    let e = 0;
+    for (const t in this.trackers)
+      this.trackers[Number(t)].socket && this.trackers[Number(t)].socket?.connected && e++;
+    return {
+      connected: e,
+      total: this.announceURLs.length
+    };
+  }
+  /**
+   * Destroy object
+   */
+  destroy() {
+    let e;
+    for (e in this.peers)
+      for (const t in this.peers[e])
+        this.peers[e][t].destroy();
+    for (e in this.trackers)
+      this.trackers[Number(e)].destroy();
+  }
+  /**
+   * A custom function binded on Peer object to easily respond back to message
+   */
+  _peerRespond(e, t) {
+    return (n) => this.send(e, n, t);
+  }
+  /**
+   * Handle msg chunks. Returns false until the last chunk is received. Finally returns the entire msg
+   */
+  _chunkHandler(e) {
+    return this.msgChunks[String(e.id)] || (this.msgChunks[String(e.id)] = []), this.msgChunks[String(e.id)][e.c ?? 0] = e.msg, e.last ? this.msgChunks[String(e.id)].join("") : !1;
+  }
+  /**
+   * Remove all stored chunks of a particular message
+   */
+  _destroyChunks(e) {
+    delete this.msgChunks[String(e)];
+  }
+  /**
+   * Default announce options
+   */
+  _defaultAnnounceOpts(e = {}) {
+    return e.numwant == null && (e.numwant = 50), e.uploaded == null && (e.uploaded = 0), e.downloaded == null && (e.downloaded = 0), e;
+  }
+  /**
+   * Initialize trackers and fetch peers
+   */
+  _fetchPeers() {
+    for (const e in this.announceURLs)
+      this.trackers[Number(e)] = new Ne(this, this.announceURLs[Number(e)]), this.trackers[Number(e)].announce(this._defaultAnnounceOpts());
+  }
+  _createMessageEnvelope(e, t = "") {
+    const n = {
+      id: t !== "" ? t : Math.floor(Math.random() * 1e5 + 1e5),
+      msg: e
+    };
+    return typeof e == "object" && (n.msg = JSON.stringify(e), n.o = 1), n;
+  }
+  async _sendEnvelope(e, t, n = !1) {
+    let s = 0, r = "", o = { ...t };
+    for (; o.msg.length > 0; ) {
+      o.c = s, r = o.msg.slice($t), o.msg = o.msg.slice(0, $t), r ? delete o.last : o.last = !0;
+      const l = Gt + JSON.stringify(o);
+      n ? await this._sendRawWithRetry(e, l) : e.send(l), o = {
+        ...o,
+        msg: r
+      }, s++;
+    }
+  }
+  async _sendOneWay(e, t, n = !1) {
+    const s = this._getConnectedPeer(e), r = this._createMessageEnvelope(t);
+    await this._sendEnvelope(s, r, n), Q("sent a one-way message to " + s.id);
+  }
+  async _sendInternalMessage(e, t, n = [], s = !1) {
+    if (n.length > 0) {
+      const o = this._createPacketId();
+      return await this._sendViaRoute(n, t, o, void 0, s), {
+        circuitId: o,
+        route: n
+      };
+    }
+    const r = this._getPeerById(e);
+    return await this._sendOneWay(r, t, s), null;
+  }
+  _sendRoutedRequest(e, t, n) {
+    const s = n ?? this._resolveConfiguredRoute(e);
+    if (s.length === 0) {
+      const r = this._getPeerById(e);
+      return this.send(r, t, "");
+    }
+    return new Promise((r, o) => {
+      const l = this._createPacketId(), _ = this._createPacketId(), u = [...s.slice(0, -1)].reverse();
+      u.push(this._peerId);
+      const v = setTimeout(() => {
+        delete this.pendingRequests[l], o(new Error(`Timed out waiting for routed response after ${this._options.timeout}ms`));
+      }, this._options.timeout);
+      this.pendingRequests[l] = {
+        resolve: r,
+        reject: o,
+        timeoutId: v
+      }, this._sendViaRoute(s, this._createRoutedPayload("route-request", t, {
+        circuitId: _,
+        requestId: l,
+        originPeerId: this._peerId,
+        replyRoute: u
+      }), _, void 0, !0).catch((d) => {
+        this.pendingRequests[l]?.timeoutId && clearTimeout(this.pendingRequests[l].timeoutId), delete this.pendingRequests[l], o(d);
+      });
+    });
+  }
+  _resolveConfiguredRoute(e) {
+    return this._options.onion ? this._resolveOnionRoute(e, this._options.onion) : [];
+  }
+  _resolveHiddenServiceMasterPeerId(e) {
+    return this._hiddenService.services?.[e] ? this._hiddenService.services[e] : this._hiddenService.serviceName === e && this._hiddenService.masterPeerId ? this._hiddenService.masterPeerId : this._hiddenService.masterPeerId ?? null;
+  }
+  _resolveHiddenServiceRoute(e, t, n = Qe) {
+    const s = this._hiddenService.through ? [...this._hiddenService.through] : [];
+    if (s.length > 0)
+      return [...s, e];
+    const r = Math.max(0, n - 1), o = Object.keys(this.peers).filter((_) => _ !== e && _ !== t), l = [];
+    for (let _ = 0; _ < r && o.length > 0; _++) {
+      const u = Math.floor(Math.random() * o.length);
+      l.push(o.splice(u, 1)[0]);
+    }
+    return [...l, e];
+  }
+  _getConnectedPeer(e) {
+    if (!e.connected)
+      for (const t in this.peers[e.id]) {
+        const n = this.peers[e.id][t];
+        if (n.connected)
+          return n;
+      }
+    if (!e.connected)
+      throw new Error(`No connected channel available for peer ${e.id}`);
+    return e;
+  }
+  _getPeerById(e) {
+    const t = this.peers[e];
+    if (!t)
+      throw new Error(`Peer ${e} is not connected`);
+    for (const n in t)
+      if (t[n].connected)
+        return t[n];
+    throw new Error(`Peer ${e} does not have an active data channel`);
+  }
+  async _waitForPeerDrain(e, t = $i) {
+    const n = this._getConnectedPeer(e), s = n._channel;
+    if (!(!s || typeof s.bufferedAmount != "number"))
+      for (; n.connected && s.readyState === "open" && s.bufferedAmount > t; )
+        await this._delay(Vt);
+  }
+  async _sendRawWithRetry(e, t) {
+    const n = this._getConnectedPeer(e);
+    for (let s = 0; s < Vi; s++) {
+      await this._waitForPeerDrain(n);
+      try {
+        n.send(t);
+        return;
+      } catch (r) {
+        if (!(r instanceof Error ? r.message : String(r)).includes("send queue is full"))
+          throw r;
+        await this._delay(Vt);
+      }
+    }
+    throw new Error("Timed out waiting for RTCDataChannel capacity");
+  }
+  _delay(e) {
+    return new Promise((t) => {
+      setTimeout(t, e);
+    });
+  }
+  _isOnionPacket(e) {
+    return typeof e == "object" && e !== null && "__p2ptInternal" in e;
+  }
+  _isFileTransferPacket(e) {
+    return typeof e == "object" && e !== null && "__ghostmeshInternal" in e && (e.__ghostmeshInternal === "file-offer" || e.__ghostmeshInternal === "file-chunk" || e.__ghostmeshInternal === "file-range-request" || e.__ghostmeshInternal === "file-cancel" || e.__ghostmeshInternal === "file-end");
+  }
+  _isRoutedPacket(e) {
+    return typeof e == "object" && e !== null && "__ghostmeshInternal" in e && (e.__ghostmeshInternal === "route-request" || e.__ghostmeshInternal === "route-response");
+  }
+  _isHiddenServiceRequestPacket(e) {
+    return typeof e == "object" && e !== null && "__ghostmeshInternal" in e && e.__ghostmeshInternal === "hidden-service-request";
+  }
+  _isHiddenServiceResponsePacket(e) {
+    return typeof e == "object" && e !== null && "__ghostmeshInternal" in e && e.__ghostmeshInternal === "hidden-service-response";
+  }
+  _handleOnionPacket(e, t) {
+    if (t.ttl <= 0)
+      return;
+    if (t.__p2ptInternal === "onion-forward") {
+      const s = this._getPeerById(t.nextPeerId), r = JSON.parse(t.payload);
+      r.ttl = t.ttl - 1, this._sendOneWay(s, r, !0);
+      return;
+    }
+    let n = t.msg;
+    if (t.o && (n = JSON.parse(t.msg)), this._isRoutedPacket(n)) {
+      this._handleRoutedPacket(e, n);
+      return;
+    }
+    if (this._isFileTransferPacket(n)) {
+      this._handleFileTransferPacket(e, n);
+      return;
+    }
+    this.emit("onionmsg", e, n, {
+      circuitId: t.circuitId,
+      route: []
+    });
+  }
+  _handleRoutedPacket(e, t) {
+    if (t.__ghostmeshInternal === "route-response") {
+      const r = this.pendingRequests[t.requestId];
+      if (!r)
+        return;
+      r.timeoutId && clearTimeout(r.timeoutId);
+      let o = t.msg;
+      t.o && (o = JSON.parse(t.msg)), delete this.pendingRequests[t.requestId], r.resolve([this._createRoutedPeer(e, t.originPeerId, t.circuitId), o]);
+      return;
+    }
+    let n = t.msg;
+    if (t.o && (n = JSON.parse(t.msg)), this._isHiddenServiceRequestPacket(n)) {
+      const r = this._createRoutedPeer(e, t.originPeerId, t.circuitId, t.replyRoute, t.requestId);
+      this._handleHiddenServiceRequest(r, n);
+      return;
+    }
+    const s = this._createRoutedPeer(e, t.originPeerId, t.circuitId, t.replyRoute, t.requestId);
+    this.emit("onionmsg", s, n, {
+      circuitId: t.circuitId,
+      route: t.replyRoute.slice().reverse()
+    }), this.emit("msg", s, n);
+  }
+  async _handleHiddenServiceRequest(e, t) {
+    try {
+      const n = this.hiddenServiceHandlers[t.service];
+      if (n) {
+        if (!this._identity.privateKey)
+          throw new Error(`Hidden service "${t.service}" requires identity.privateKey`);
+        const u = await Yt(t.body, this._identity.privateKey), v = await n(u, {
+          requestId: t.requestId,
+          service: t.service,
+          nonce: t.nonce,
+          peer: e,
+          clientPublicKey: t.clientPublicKey
+        }), d = this._padHiddenServicePacket({
+          __ghostmeshInternal: "hidden-service-response",
+          service: t.service,
+          requestId: t.requestId,
+          nonce: t.nonce,
+          body: await Jt(v, t.clientPublicKey),
+          realHops: 0,
+          simulatedHops: 0,
+          delayedMs: 0
+        }, this._hiddenService.fixedPacketBytes);
+        await e.respond(d);
+        return;
+      }
+      const s = this._resolveHiddenServiceMasterPeerId(t.service);
+      if (!s)
+        throw new Error(`No hidden service route configured for "${t.service}"`);
+      const r = this._resolveHiddenServiceRoute(s, e.id, t.requestedHops), o = Date.now(), [, l] = await this._sendRoutedRequest(s, t, r);
+      if (!this._isHiddenServiceResponsePacket(l))
+        throw new Error(`Hidden service "${t.service}" returned an invalid response packet`);
+      const _ = await this._shapeHiddenServiceResponse(l, r, t.requestedHops, o);
+      await e.respond(_);
+    } catch (n) {
+      this.emit(
+        "hiddenserviceerror",
+        n instanceof Error ? n : new Error(String(n)),
+        {
+          service: t.service,
+          requestId: t.requestId
+        }
+      );
+    }
+  }
+  _handleFileTransferPacket(e, t) {
+    if (t.__ghostmeshInternal === "file-offer") {
+      const r = {
+        transferId: t.transferId,
+        name: t.name,
+        mimeType: t.mimeType,
+        size: t.size,
+        chunkSize: t.chunkSize,
+        totalChunks: t.totalChunks,
+        receivedBytes: 0,
+        metadata: t.metadata
+      }, o = new Xt(
+        r,
+        e.id,
+        "incoming",
+        void 0,
+        async (l, _) => {
+          await this._sendInternalMessage(e.id, {
+            __ghostmeshInternal: "file-range-request",
+            transferId: t.transferId,
+            start: l,
+            end: _
+          }, [], !0);
+        },
+        {
+          cancel: async (l) => {
+            try {
+              await this._sendInternalMessage(e.id, {
+                __ghostmeshInternal: "file-cancel",
+                transferId: t.transferId,
+                reason: l
+              }, [], !0);
+            } catch {
+            }
+            delete this.incomingFiles[t.transferId];
+          }
+        }
+      );
+      this.incomingFiles[t.transferId] = { session: o }, this.emit("file", e, o);
+      return;
+    }
+    if (t.__ghostmeshInternal === "file-range-request") {
+      const r = this.outgoingFiles[t.transferId];
+      if (!r)
+        return;
+      (async () => {
+        try {
+          const o = await r.readRange(t.start, t.end);
+          if (o.byteLength === 0)
+            return;
+          await this._sendInternalMessage(e.id, {
+            __ghostmeshInternal: "file-chunk",
+            transferId: t.transferId,
+            chunkIndex: Math.floor(t.start / Math.max(1, r.chunkSize)),
+            offset: t.start,
+            data: this._bytesToBase64(o)
+          }, [], !0);
+        } catch (o) {
+          Q(`Failed to serve range for ${t.transferId}: ${String(o)}`);
+        }
+      })();
+      return;
+    }
+    if (t.__ghostmeshInternal === "file-cancel") {
+      const r = this.outgoingFiles[t.transferId];
+      r && (r._cancelLocal(t.reason ?? "Remote peer canceled transfer"), delete this.outgoingFiles[t.transferId]);
+      const o = this.incomingFiles[t.transferId];
+      o && (o.session._cancelLocal(t.reason ?? "Remote peer canceled transfer"), delete this.incomingFiles[t.transferId]);
+      return;
+    }
+    const n = this.incomingFiles[t.transferId];
+    if (!n)
+      return;
+    const s = n.session;
+    if (t.__ghostmeshInternal === "file-chunk") {
+      const r = this._base64ToBytes(t.data);
+      s.receivedBytes = Math.min(
+        s.size,
+        t.offset + r.length
+      );
+      const o = {
+        transfer: {
+          transferId: s.transferId,
+          name: s.name,
+          mimeType: s.mimeType,
+          size: s.size,
+          chunkSize: s.chunkSize,
+          totalChunks: s.totalChunks,
+          receivedBytes: s.receivedBytes,
+          metadata: s.metadata
+        },
+        chunkIndex: t.chunkIndex,
+        chunk: r,
+        offset: t.offset,
+        receivedBytes: s.receivedBytes
+      };
+      s._appendChunk(r, t.offset, o);
+      return;
+    }
+    s._markComplete(), delete this.incomingFiles[t.transferId];
+  }
+  _resolveOnionRoute(e, t) {
+    const s = [...t.through ? [...t.through] : this._pickRandomOnionHops(e, t.hops ?? 2), e], r = new Set(s);
+    if (e === this._peerId)
+      throw new Error("Cannot build an onion route to the current peer");
+    if (s.length === 0)
+      throw new Error("Onion route requires at least one destination peer");
+    if (r.size !== s.length)
+      throw new Error("Onion route cannot contain duplicate peers");
+    for (const o of s)
+      this._getPeerById(o);
+    return s;
+  }
+  _createRoutedPayload(e, t, n) {
+    const s = {
+      __ghostmeshInternal: e,
+      ...n,
+      msg: typeof t == "object" ? JSON.stringify(t) : String(t)
+    };
+    return typeof t == "object" && (s.o = 1), s;
+  }
+  _createRoutedPeer(e, t, n, s = [], r) {
+    const o = Object.create(e);
+    return o.id = t, o.channelName = `onion:${n}`, o.connected = !0, o.routeInfo = {
+      circuitId: n,
+      route: s.slice().reverse()
+    }, o.respond = async (l) => {
+      if (s.length === 0)
+        throw new Error("No reply route available for this routed message");
+      const _ = this._createRoutedPayload("route-response", l, {
+        circuitId: n,
+        requestId: r ?? n,
+        originPeerId: this._peerId
+      });
+      return await this._sendViaRoute(s, _, n, void 0, !0), [o, l];
+    }, o;
+  }
+  _pickRandomOnionHops(e, t) {
+    const n = Object.keys(this.peers).filter((r) => r !== e), s = [];
+    for (let r = 0; r < Math.max(t, 0) && n.length > 0; r++) {
+      const o = Math.floor(Math.random() * n.length);
+      s.push(n.splice(o, 1)[0]);
+    }
+    return s;
+  }
+  _createOnionPacket(e, t, n, s = e.length + 1) {
+    let r = {
+      __p2ptInternal: "onion-deliver",
+      circuitId: n,
+      ttl: s,
+      msg: typeof t == "object" ? JSON.stringify(t) : t
+    };
+    typeof t == "object" && (r.o = 1);
+    for (let o = e.length - 2; o >= 0; o--)
+      r = {
+        __p2ptInternal: "onion-forward",
+        circuitId: n,
+        ttl: s - (e.length - 1 - o),
+        nextPeerId: e[o + 1],
+        payload: JSON.stringify(r)
+      };
+    return r;
+  }
+  async _sendViaRoute(e, t, n, s = e.length + 1, r = !1) {
+    const o = this._createOnionPacket(e, t, n, s), l = this._getPeerById(e[0]);
+    await this._sendOneWay(l, o, r);
+  }
+  _createPacketId() {
+    return te(ne(8));
+  }
+  _padHiddenServicePacket(e, t) {
+    if (!t || t <= 0)
+      return e;
+    const n = { ...e }, s = JSON.stringify(n).length, r = Math.max(0, t - s);
+    return r > 0 && (n.padding = "0".repeat(r)), n;
+  }
+  async _shapeHiddenServiceResponse(e, t, n, s) {
+    const r = Math.max(1, t.length + 1), o = Math.max(r, n);
+    let l = 0;
+    if (r < o) {
+      const [_, u] = this._hiddenService.responseDelayMs ?? [1e3, 5e3], v = Math.max(0, u - _);
+      l = _ + Math.floor(Math.random() * (v + 1));
+      const d = Date.now() - s, R = Math.max(0, l - d);
+      R > 0 && await this._delay(R);
+    }
+    return this._padHiddenServicePacket({
+      ...e,
+      realHops: r,
+      simulatedHops: o,
+      delayedMs: l
+    }, this._hiddenService.fixedPacketBytes);
+  }
+  _bytesToBase64(e) {
+    if (typeof Buffer < "u")
+      return Buffer.from(e).toString("base64");
+    let t = "";
+    const n = 32768;
+    for (let s = 0; s < e.length; s += n)
+      t += String.fromCharCode(...e.subarray(s, s + n));
+    return btoa(t);
+  }
+  _base64ToBytes(e) {
+    if (typeof Buffer < "u")
+      return new Uint8Array(Buffer.from(e, "base64"));
+    const t = atob(e), n = new Uint8Array(t.length);
+    for (let s = 0; s < t.length; s++)
+      n[s] = t.charCodeAt(s);
+    return n;
+  }
+  async _yieldToEventLoop() {
+    await new Promise((e) => setTimeout(e, 0));
+  }
+  async _runOutgoingFileTransfer(e, t, n, s, r) {
+    try {
+      await this._sendInternalMessage(t, {
+        __ghostmeshInternal: "file-offer",
+        transferId: s.transferId,
+        name: s.name,
+        mimeType: s.mimeType,
+        size: s.size,
+        chunkSize: s.chunkSize,
+        totalChunks: s.totalChunks,
+        metadata: s.metadata
+      }, r, !0);
+      for (let o = 0; o < s.totalChunks; o++) {
+        if (e.canceled || (await e._waitWhilePaused(), e.canceled))
+          return;
+        const l = o * s.chunkSize, _ = await n.slice(l, l + s.chunkSize).arrayBuffer(), u = new Uint8Array(_), v = {
+          transfer: { ...s },
+          chunkIndex: o,
+          chunk: u,
+          offset: l,
+          receivedBytes: Math.min(n.size, l + u.length)
+        };
+        await this._sendInternalMessage(t, {
+          __ghostmeshInternal: "file-chunk",
+          transferId: s.transferId,
+          chunkIndex: o,
+          offset: l,
+          data: this._bytesToBase64(u)
+        }, r, !0), s.receivedBytes = v.receivedBytes, e._appendChunk(u, l, v, !1), o % 8 === 0 && await this._yieldToEventLoop();
+      }
+      if (e.canceled)
+        return;
+      await this._sendInternalMessage(t, {
+        __ghostmeshInternal: "file-end",
+        transferId: s.transferId
+      }, r, !0), e._markComplete(), delete this.outgoingFiles[s.transferId];
+    } catch (o) {
+      e._markError(o instanceof Error ? o : new Error(String(o))), delete this.outgoingFiles[s.transferId];
+    }
+  }
+  _reindexTrackers(e) {
+    const t = {};
+    for (const n in this.trackers) {
+      const s = Number(n), r = s > e ? s - 1 : s;
+      t[r] = this.trackers[s];
+    }
+    this.trackers = t;
+  }
+  /**
+   * Load the Node.js WebRTC implementation only when needed.
+   */
+  async _ensureWebRTCImplementation() {
+    if (!(this._wrtc || typeof window < "u"))
+      try {
+        const { default: e } = await import("./browser-S7haILtt.js").then((t) => t.b);
+        this._wrtc = e;
+      } catch (e) {
+        const t = e instanceof Error ? e.message : String(e);
+        throw new Error(
+          `Failed to load @roamhq/wrtc in Node.js. Install the optional dependency to use GhostMesh outside the browser. Original error: ${t}`
+        );
+      }
+  }
+}
+export {
+  Xt as F,
+  cs as G,
+  Fe as g
+};

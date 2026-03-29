@@ -130,9 +130,41 @@ gmesh.setOptions({
       username: 'user',
       credential: 'pass'
     }
-  ]
+  ],
+  identity: {
+    role: 'client',
+    publicKey: CLIENT_PUBLIC_KEY_PEM,
+    privateKey: CLIENT_PRIVATE_KEY_PEM
+  },
+  hiddenService: {
+    serviceName: 'directory',
+    entryPeers: ['entry-peer-id'],
+    masterPublicKey: MASTER_PUBLIC_KEY_PEM,
+    minHops: 3,
+    responseDelayMs: [1000, 5000],
+    fixedPacketBytes: 4096
+  }
 })
 ```
+
+Hidden-service specific fields:
+
+* `identity`
+  Optional role and RSA-OAEP key material for the current node.
+* `hiddenService.entryPeers`
+  Entry peers known by clients.
+* `hiddenService.masterPeerId`
+  Master peer id known by entry peers.
+* `hiddenService.services`
+  Mapping from service name to master peer id on entry peers.
+* `hiddenService.masterPublicKey`
+  Public key used by clients to encrypt payloads for the hidden master.
+* `hiddenService.minHops`
+  Desired total route depth between entry peer and master.
+* `hiddenService.responseDelayMs`
+  Random delay range used when the real route is shorter than `minHops`.
+* `hiddenService.fixedPacketBytes`
+  Optional packet padding target for hidden-service envelopes.
 
 ### `start()`
 
@@ -178,6 +210,29 @@ Arguments:
 * `options: { chunkSize?: number, metadata?: Record<string, unknown> }`
 
 Returns: `Promise<FileSession>`
+
+### `requestHiddenService(serviceName, payload[, options])`
+
+Sends an encrypted request to a hidden master through one configured entry peer.
+
+Arguments:
+
+* `serviceName: string`
+* `payload: unknown`
+* `options: { entryPeerId?: string, serviceName?: string, masterPublicKey?: CryptoKey | string, minHops?: number, fixedPacketBytes?: number }`
+
+Returns: `Promise<unknown>`
+
+### `handleHiddenService(serviceName, handler)`
+
+Registers the async handler executed by the hidden master for a service name.
+
+Arguments:
+
+* `serviceName: string`
+* `handler: (payload, context) => unknown | Promise<unknown>`
+
+Returns: `void`
 
 ### `destroy()`
 

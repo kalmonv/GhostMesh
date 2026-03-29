@@ -5,7 +5,6 @@ type ResponsePayload = [peer: Peer, msg: unknown];
 type ResponseResolver = (value: ResponsePayload) => void;
 type ResponseRejector = (reason?: unknown) => void;
 type OnionMessage = string | Record<string, unknown>;
-type InternalMessage = OnionPacket | FileTransferPacket | RoutedPacket;
 interface TrackerSocket {
     connected?: boolean;
 }
@@ -49,12 +48,48 @@ interface OnionRouteOptions {
     through?: string[];
     ttl?: number;
 }
+type GhostMeshRole = 'client' | 'entry' | 'master' | 'relay';
+type KeyMaterial = CryptoKey | string;
+export interface IdentityOptions {
+    role?: GhostMeshRole;
+    publicKey?: KeyMaterial;
+    privateKey?: KeyMaterial;
+}
+export interface HiddenServiceOptions {
+    role?: 'client' | 'entry' | 'master';
+    serviceName?: string;
+    entryPeers?: string[];
+    masterPeerId?: string;
+    services?: Record<string, string>;
+    masterPublicKey?: KeyMaterial;
+    minHops?: number;
+    through?: string[];
+    responseDelayMs?: [number, number];
+    fixedPacketBytes?: number;
+}
+export interface HiddenServiceRequestOptions {
+    entryPeerId?: string;
+    serviceName?: string;
+    masterPublicKey?: KeyMaterial;
+    minHops?: number;
+    fixedPacketBytes?: number;
+}
+export interface HiddenServiceRequestContext {
+    requestId: string;
+    service: string;
+    nonce: string;
+    peer: Peer;
+    clientPublicKey: string;
+}
+type HiddenServiceHandler = (payload: unknown, context: HiddenServiceRequestContext) => Promise<unknown> | unknown;
 interface GhostMeshOptions {
     timeout?: number;
     onion?: OnionRouteOptions | false;
     Onion?: OnionRouteOptions | false;
     iceServers?: RTCIceServer[];
     iceTransportPolicy?: RTCIceTransportPolicy;
+    identity?: IdentityOptions;
+    hiddenService?: HiddenServiceOptions;
 }
 export interface OnionRouteInfo {
     circuitId: string;
@@ -177,6 +212,34 @@ interface RoutedResponsePacket {
     o?: 1;
 }
 type RoutedPacket = RoutedRequestPacket | RoutedResponsePacket;
+interface HiddenServiceCiphertext {
+    encryptedKey: string;
+    iv: string;
+    ciphertext: string;
+}
+interface HiddenServiceRequestPacket {
+    __ghostmeshInternal: 'hidden-service-request';
+    service: string;
+    requestId: string;
+    nonce: string;
+    clientPublicKey: string;
+    requestedHops: number;
+    body: HiddenServiceCiphertext;
+    padding?: string;
+}
+interface HiddenServiceResponsePacket {
+    __ghostmeshInternal: 'hidden-service-response';
+    service: string;
+    requestId: string;
+    nonce: string;
+    body: HiddenServiceCiphertext;
+    realHops: number;
+    simulatedHops: number;
+    delayedMs: number;
+    padding?: string;
+}
+type HiddenServicePacket = HiddenServiceRequestPacket | HiddenServiceResponsePacket;
+type InternalMessage = FileTransferPacket | RoutedPacket | HiddenServicePacket;
 export declare class FileSession extends EventEmitter implements FileTransferInfo {
     transferId: string;
     name: string;
@@ -254,6 +317,9 @@ export default class GhostMesh<SendableMessage = any> extends EventEmitter {
     _options: Required<Pick<GhostMeshOptions, 'timeout'>> & {
         onion: OnionRouteOptions | false;
     };
+    _identity: IdentityOptions;
+    _hiddenService: HiddenServiceOptions;
+    hiddenServiceHandlers: Record<string, HiddenServiceHandler>;
     _wrtc?: RuntimeWebRTC;
     /**
      *
@@ -269,6 +335,10 @@ export default class GhostMesh<SendableMessage = any> extends EventEmitter {
     on(event: 'trackerwarning', callback: (error: object, stats: TrackerStats) => void): this;
     on(event: 'onionmsg', callback: (peer: Peer<SendableMessage>, msg: unknown, route: OnionRouteInfo) => void): this;
     on(event: 'file', callback: (peer: Peer<SendableMessage>, session: FileSession) => void): this;
+    on(event: 'hiddenserviceerror', callback: (error: Error, info: {
+        service: string;
+        requestId?: string;
+    }) => void): this;
     on(event: 'peer', callback: (peer: Peer<SendableMessage>) => void): this;
     on(event: 'update', callback: (response: {
         announce: string;
@@ -310,6 +380,8 @@ export default class GhostMesh<SendableMessage = any> extends EventEmitter {
      * Send a file in progressive chunks.
      */
     sendFile(peer: Peer<SendableMessage>, file: Blob, options?: FileSendOptions): Promise<FileSession>;
+    handleHiddenService(serviceName: string, handler: HiddenServiceHandler): void;
+    requestHiddenService(serviceName: string, payload: unknown, options?: HiddenServiceRequestOptions): Promise<unknown>;
     /**
      * Request more peers
      */
@@ -346,8 +418,10 @@ export default class GhostMesh<SendableMessage = any> extends EventEmitter {
     _sendEnvelope(peer: Peer<SendableMessage>, data: MessageEnvelope, useBackpressure?: boolean): Promise<void>;
     _sendOneWay(peer: Peer<SendableMessage>, msg: unknown, useBackpressure?: boolean): Promise<void>;
     _sendInternalMessage(targetPeerId: string, msg: InternalMessage, route?: string[], useBackpressure?: boolean): Promise<OnionRouteInfo | null>;
-    _sendRoutedRequest(targetPeerId: string, msg: SendableMessage): Promise<ResponsePayload>;
+    _sendRoutedRequest(targetPeerId: string, msg: SendableMessage, routeOverride?: string[]): Promise<ResponsePayload>;
     _resolveConfiguredRoute(targetPeerId: string): string[];
+    _resolveHiddenServiceMasterPeerId(serviceName: string): string | null;
+    _resolveHiddenServiceRoute(targetPeerId: string, incomingPeerId?: string, requestedHops?: number): string[];
     _getConnectedPeer(peer: Peer<SendableMessage>): Peer<SendableMessage>;
     _getPeerById(peerId: string): Peer<SendableMessage>;
     _waitForPeerDrain(peer: Peer<SendableMessage>, maxBufferedAmount?: number): Promise<void>;
@@ -356,8 +430,11 @@ export default class GhostMesh<SendableMessage = any> extends EventEmitter {
     _isOnionPacket(msg: unknown): msg is OnionPacket;
     _isFileTransferPacket(msg: unknown): msg is FileTransferPacket;
     _isRoutedPacket(msg: unknown): msg is RoutedPacket;
+    _isHiddenServiceRequestPacket(msg: unknown): msg is HiddenServiceRequestPacket;
+    _isHiddenServiceResponsePacket(msg: unknown): msg is HiddenServiceResponsePacket;
     _handleOnionPacket(peer: Peer<SendableMessage>, packet: OnionPacket): void;
     _handleRoutedPacket(peer: Peer<SendableMessage>, packet: RoutedPacket): void;
+    _handleHiddenServiceRequest(peer: Peer<SendableMessage>, packet: HiddenServiceRequestPacket): Promise<void>;
     _handleFileTransferPacket(peer: Peer<SendableMessage>, packet: FileTransferPacket): void;
     _resolveOnionRoute(targetPeerId: string, options: OnionRouteOptions): string[];
     _createRoutedPayload(type: RoutedPacket['__ghostmeshInternal'], msg: unknown, options: Omit<RoutedRequestPacket, '__ghostmeshInternal' | 'msg' | 'o'> | Omit<RoutedResponsePacket, '__ghostmeshInternal' | 'msg' | 'o'>): RoutedPacket;
@@ -366,6 +443,8 @@ export default class GhostMesh<SendableMessage = any> extends EventEmitter {
     _createOnionPacket(route: string[], msg: OnionMessage | InternalMessage, circuitId: string, ttl?: number): OnionPacket;
     _sendViaRoute(route: string[], msg: OnionMessage | InternalMessage, circuitId: string, ttl?: number, useBackpressure?: boolean): Promise<void>;
     _createPacketId(): string;
+    _padHiddenServicePacket<T extends HiddenServicePacket>(packet: T, fixedPacketBytes?: number): T;
+    _shapeHiddenServiceResponse(packet: HiddenServiceResponsePacket, route: string[], requestedHops: number, startedAt: number): Promise<HiddenServiceResponsePacket>;
     _bytesToBase64(bytes: Uint8Array): string;
     _base64ToBytes(value: string): Uint8Array;
     _yieldToEventLoop(): Promise<void>;

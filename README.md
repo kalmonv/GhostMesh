@@ -21,6 +21,7 @@ GhostMesh helps you:
 * stream media progressively in the browser
 * configure STUN and TURN servers with `setOptions()`
 * use relay or lightweight onion-style multi-hop routing
+* expose a hidden master service through entry peers with encrypted request/response payloads
 
 ## Installation
 
@@ -326,10 +327,118 @@ await gmesh.start()
   Default routed delivery strategy for `send()` and `sendFile()`.
 * `Onion`
   Accepted as a compatibility alias.
+* `identity`
+  Optional local role and RSA key material used by hidden services.
+* `hiddenService`
+  Hidden-master routing, entry peer selection, response shaping and master public key settings.
 
 ### Privacy note
 
 Using `iceTransportPolicy: 'relay'` reduces direct IP exposure to peers, but it does not make WebRTC anonymous. Your TURN server still sees relay activity and metadata.
+
+## Hidden Master Services
+
+GhostMesh now includes a lightweight hidden-service layer on top of the existing onion routing.
+
+The goal is:
+
+* clients only know one entry peer
+* entry peers know how to reach the hidden master
+* the request body is encrypted with the master's public key
+* the response body is encrypted for the requesting client
+* entry peers can simulate a minimum route depth with delayed responses when the mesh is small
+
+### Hidden service options
+
+```ts
+gmesh.setOptions({
+  identity: {
+    role: 'client',
+    publicKey: CLIENT_PUBLIC_KEY_PEM,
+    privateKey: CLIENT_PRIVATE_KEY_PEM
+  },
+  hiddenService: {
+    serviceName: 'directory',
+    entryPeers: ['entry-peer-id-1', 'entry-peer-id-2'],
+    masterPublicKey: MASTER_PUBLIC_KEY_PEM,
+    minHops: 3,
+    responseDelayMs: [1000, 5000],
+    fixedPacketBytes: 4096
+  }
+})
+```
+
+### Client request
+
+```ts
+const response = await gmesh.requestHiddenService('directory', {
+  action: 'lookup',
+  username: 'alice'
+})
+
+console.log(response)
+```
+
+If the client does not provide `identity.publicKey` and `identity.privateKey`, `requestHiddenService()` creates a temporary RSA keypair for that request and uses it for the encrypted response.
+
+### Entry peer setup
+
+Entry peers forward hidden-service requests without being able to read the encrypted body.
+
+```ts
+gmesh.setOptions({
+  identity: {
+    role: 'entry'
+  },
+  hiddenService: {
+    role: 'entry',
+    services: {
+      directory: MASTER_PEER_ID
+    },
+    minHops: 3,
+    responseDelayMs: [1000, 5000],
+    fixedPacketBytes: 4096
+  }
+})
+```
+
+When the route to the master is shorter than `minHops`, the entry peer keeps the response for a random delay inside `responseDelayMs` so a short path looks less obvious.
+
+### Master setup
+
+The master only needs its private key and a handler for the service name.
+
+```ts
+gmesh.setOptions({
+  identity: {
+    role: 'master',
+    privateKey: MASTER_PRIVATE_KEY_PEM
+  },
+  hiddenService: {
+    role: 'master',
+    serviceName: 'directory',
+    fixedPacketBytes: 4096
+  }
+})
+
+gmesh.handleHiddenService('directory', async (payload, context) => {
+  console.log('hidden request', context.requestId, payload)
+
+  return {
+    ok: true,
+    peers: ['alice', 'bob']
+  }
+})
+```
+
+### Key format
+
+`identity.publicKey`, `identity.privateKey` and `hiddenService.masterPublicKey` accept:
+
+* PEM strings for RSA-OAEP keys
+* already-imported `CryptoKey` instances
+
+GhostMesh uses Web Crypto to encrypt the hidden-service body with AES-GCM and wraps the AES key with RSA-OAEP.
 
 ## Relay and Onion Routing
 
