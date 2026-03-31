@@ -133,13 +133,13 @@ gmesh.setOptions({
   ],
   identity: {
     role: 'client',
-    publicKey: CLIENT_PUBLIC_KEY_PEM,
-    privateKey: CLIENT_PRIVATE_KEY_PEM
+    publicKey: CLIENT_PUBLIC_KEY_PEM
   },
   hiddenService: {
     serviceName: 'directory',
     entryPeers: ['entry-peer-id'],
     masterPublicKey: MASTER_PUBLIC_KEY_PEM,
+    revealServer: false,
     minHops: 3,
     responseDelayMs: [1000, 5000],
     fixedPacketBytes: 4096
@@ -159,6 +159,8 @@ Hidden-service specific fields:
   Mapping from service name to master peer id on entry peers.
 * `hiddenService.masterPublicKey`
   Public key used by clients to encrypt payloads for the hidden master.
+* `hiddenService.revealServer`
+  When `true`, a master can prove its identity to `peer.isServer()`. Default: `false`.
 * `hiddenService.minHops`
   Desired total route depth between entry peer and master.
 * `hiddenService.responseDelayMs`
@@ -198,6 +200,18 @@ Arguments:
   Internal message id used for responses. You normally do not need to provide it manually.
 
 Returns: `Promise<[peer, msg]>`
+
+### `peer.isServer()`
+
+Checks whether a connected peer is willing and able to prove that it is the configured hidden-service server.
+
+Returns: `Promise<boolean>`
+
+Notes:
+
+* the caller should have `hiddenService.masterPublicKey` configured
+* the remote server must have `hiddenService.revealServer: true`
+* the check uses a challenge that can only be answered by a peer with the matching private key
 
 ### `sendFile(peer, file[, options])`
 

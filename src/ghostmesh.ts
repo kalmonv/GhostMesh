@@ -53,6 +53,7 @@ export interface Peer<SendableMessage = unknown> {
   channelName: string
   connected?: boolean
   respond(msg: SendableMessage): Promise<ResponsePayload>
+  isServer(): Promise<boolean>
   on(event: string, listener: (...args: any[]) => void): void
   send(data: string): void
   destroy(): void
@@ -115,6 +116,7 @@ export interface HiddenServiceOptions {
   masterPeerId?: string
   services?: Record<string, string>
   masterPublicKey?: KeyMaterial
+  revealServer?: boolean
   minHops?: number
   through?: string[]
   responseDelayMs?: [number, number]
@@ -275,6 +277,10 @@ interface PendingRequest {
   timeoutId?: ReturnType<typeof setTimeout>
 }
 
+interface ForwardedHiddenServiceRequest {
+  timeoutId: ReturnType<typeof setTimeout>
+}
+
 interface RoutedPeer extends Peer<any> {
   routeInfo: OnionRouteInfo
 }
@@ -327,6 +333,25 @@ interface HiddenServiceResponsePacket {
   simulatedHops: number
   delayedMs: number
   padding?: string
+}
+
+interface HiddenServiceErrorPayload {
+  __ghostmeshInternal: 'hidden-service-error'
+  code: 'duplicate-request'
+  message: string
+}
+
+interface ServerRevealRequestPacket {
+  __ghostmeshInternal: 'server-reveal-request'
+  challenge: HiddenServiceCiphertext
+}
+
+interface ServerRevealResponsePacket {
+  __ghostmeshInternal: 'server-reveal-response'
+  ok: boolean
+  nonce?: string
+  reason?: string
+  peerId?: string
 }
 
 type HiddenServicePacket = HiddenServiceRequestPacket | HiddenServiceResponsePacket
@@ -1239,6 +1264,7 @@ export default class GhostMesh<SendableMessage = any> extends EventEmitter {
   msgChunks: Record<string, string[]>
   responseWaiting: Record<string, Record<string, ResponseResolver>>
   pendingRequests: Record<string, PendingRequest>
+  forwardedHiddenServiceRequests: Record<string, ForwardedHiddenServiceRequest>
   incomingFiles: Record<string, IncomingFileTransferState>
   outgoingFiles: Record<string, FileSession>
   identifierString?: string
@@ -1269,6 +1295,7 @@ export default class GhostMesh<SendableMessage = any> extends EventEmitter {
     this.msgChunks = {}
     this.responseWaiting = {}
     this.pendingRequests = {}
+    this.forwardedHiddenServiceRequests = {}
     this.incomingFiles = {}
     this.outgoingFiles = {}
     this._rtcConfig = {
@@ -1282,6 +1309,7 @@ export default class GhostMesh<SendableMessage = any> extends EventEmitter {
     this._hiddenService = {
       entryPeers: [],
       services: {},
+      revealServer: false,
       minHops: DEFAULT_HIDDEN_SERVICE_MIN_HOPS,
       responseDelayMs: [1000, 5000]
     }
@@ -1372,6 +1400,7 @@ export default class GhostMesh<SendableMessage = any> extends EventEmitter {
     await this._ensureWebRTCImplementation()
 
     this.on('peer', (peer: Peer<SendableMessage>) => {
+      this._decoratePeer(peer)
       let newpeer = false
       if (!this.peers[peer.id]) {
         newpeer = true
@@ -1429,6 +1458,8 @@ export default class GhostMesh<SendableMessage = any> extends EventEmitter {
                 this._handleOnionPacket(peer, msg)
               } else if (this._isRoutedPacket(msg)) {
                 this._handleRoutedPacket(peer, msg)
+              } else if (this._isServerRevealRequestPacket(msg)) {
+                void this._handleServerRevealRequest(peer, msg)
               } else if (this._isHiddenServiceRequestPacket(msg)) {
                 void this._handleHiddenServiceRequest(peer, msg)
               } else if (this._isFileTransferPacket(msg)) {
@@ -1685,7 +1716,12 @@ export default class GhostMesh<SendableMessage = any> extends EventEmitter {
       throw new Error('Hidden service response nonce mismatch')
     }
 
-    return await decryptHiddenPayload(response.body, clientKeyPair.privateKey)
+    const decryptedResponse = await decryptHiddenPayload(response.body, clientKeyPair.privateKey)
+    if (this._isHiddenServiceErrorPayload(decryptedResponse)) {
+      throw new Error(decryptedResponse.message)
+    }
+
+    return decryptedResponse
   }
 
   /**
@@ -2050,6 +2086,20 @@ export default class GhostMesh<SendableMessage = any> extends EventEmitter {
       msg.__ghostmeshInternal === 'hidden-service-response'
   }
 
+  _isServerRevealRequestPacket (msg: unknown): msg is ServerRevealRequestPacket {
+    return typeof msg === 'object' &&
+      msg !== null &&
+      '__ghostmeshInternal' in msg &&
+      msg.__ghostmeshInternal === 'server-reveal-request'
+  }
+
+  _isHiddenServiceErrorPayload (msg: unknown): msg is HiddenServiceErrorPayload {
+    return typeof msg === 'object' &&
+      msg !== null &&
+      '__ghostmeshInternal' in msg &&
+      msg.__ghostmeshInternal === 'hidden-service-error'
+  }
+
   _handleOnionPacket (peer: Peer<SendableMessage>, packet: OnionPacket): void {
     if (packet.ttl <= 0) {
       return
@@ -2161,15 +2211,40 @@ export default class GhostMesh<SendableMessage = any> extends EventEmitter {
         throw new Error(`No hidden service route configured for "${packet.service}"`)
       }
 
-      const route = this._resolveHiddenServiceRoute(masterPeerId, peer.id, packet.requestedHops)
-      const startedAt = Date.now()
-      const [, response] = await this._sendRoutedRequest(masterPeerId, packet as unknown as SendableMessage, route)
-      if (!this._isHiddenServiceResponsePacket(response)) {
-        throw new Error(`Hidden service "${packet.service}" returned an invalid response packet`)
+      const forwardedRequestKey = this._createHiddenServiceForwardKey(packet)
+      if (this.forwardedHiddenServiceRequests[forwardedRequestKey]) {
+        const duplicateResponse = await this._createHiddenServiceErrorResponse(
+          packet,
+          'Duplicate hidden-service request already in flight. Ask the requester to use another entry peer.'
+        )
+        await peer.respond(duplicateResponse as SendableMessage)
+        return
       }
 
-      const shapedResponse = await this._shapeHiddenServiceResponse(response, route, packet.requestedHops, startedAt)
-      await peer.respond(shapedResponse as SendableMessage)
+      this.forwardedHiddenServiceRequests[forwardedRequestKey] = {
+        timeoutId: setTimeout(() => {
+          delete this.forwardedHiddenServiceRequests[forwardedRequestKey]
+        }, this._options.timeout)
+      }
+
+      const route = this._resolveHiddenServiceRoute(masterPeerId, peer.id, packet.requestedHops)
+      const startedAt = Date.now()
+
+      try {
+        const [, response] = await this._sendRoutedRequest(masterPeerId, packet as unknown as SendableMessage, route)
+        if (!this._isHiddenServiceResponsePacket(response)) {
+          throw new Error(`Hidden service "${packet.service}" returned an invalid response packet`)
+        }
+
+        const shapedResponse = await this._shapeHiddenServiceResponse(response, route, packet.requestedHops, startedAt)
+        await peer.respond(shapedResponse as SendableMessage)
+      } finally {
+        const pendingForward = this.forwardedHiddenServiceRequests[forwardedRequestKey]
+        if (pendingForward?.timeoutId) {
+          clearTimeout(pendingForward.timeoutId)
+        }
+        delete this.forwardedHiddenServiceRequests[forwardedRequestKey]
+      }
     } catch (error) {
       this.emit(
         'hiddenserviceerror',
@@ -2179,6 +2254,35 @@ export default class GhostMesh<SendableMessage = any> extends EventEmitter {
           requestId: packet.requestId
         }
       )
+    }
+  }
+
+  async _handleServerRevealRequest (peer: Peer<SendableMessage>, packet: ServerRevealRequestPacket): Promise<void> {
+    try {
+      if (!this._hiddenService.revealServer || this._hiddenService.role !== 'master' || !this._identity.privateKey) {
+        await peer.respond({
+          __ghostmeshInternal: 'server-reveal-response',
+          ok: false,
+          reason: 'server-reveal-disabled',
+          peerId: this._peerId
+        } satisfies ServerRevealResponsePacket as SendableMessage)
+        return
+      }
+
+      const payload = await decryptHiddenPayload(packet.challenge, this._identity.privateKey) as { nonce?: string }
+      await peer.respond({
+        __ghostmeshInternal: 'server-reveal-response',
+        ok: typeof payload?.nonce === 'string' && payload.nonce.length > 0,
+        nonce: payload?.nonce,
+        peerId: this._peerId
+      } satisfies ServerRevealResponsePacket as SendableMessage)
+    } catch {
+      await peer.respond({
+        __ghostmeshInternal: 'server-reveal-response',
+        ok: false,
+        reason: 'server-proof-failed',
+        peerId: this._peerId
+      } satisfies ServerRevealResponsePacket as SendableMessage)
     }
   }
 
@@ -2358,6 +2462,7 @@ export default class GhostMesh<SendableMessage = any> extends EventEmitter {
     requestId?: string
   ): RoutedPeer {
     const routedPeer = Object.create(peer) as RoutedPeer
+    this._decoratePeer(routedPeer)
     routedPeer.id = originPeerId
     routedPeer.channelName = `onion:${circuitId}`
     routedPeer.connected = true
@@ -2395,6 +2500,12 @@ export default class GhostMesh<SendableMessage = any> extends EventEmitter {
     return route
   }
 
+  _decoratePeer (peer: Peer<SendableMessage>): void {
+    peer.isServer = async () => {
+      return await this._peerIsServer(peer)
+    }
+  }
+
   _createOnionPacket (route: string[], msg: OnionMessage | InternalMessage, circuitId: string, ttl = route.length + 1): OnionPacket {
     let packet: OnionPacket = {
       __p2ptInternal: 'onion-deliver',
@@ -2428,6 +2539,55 @@ export default class GhostMesh<SendableMessage = any> extends EventEmitter {
 
   _createPacketId (): string {
     return arr2hex(randomBytes(8))
+  }
+
+  async _peerIsServer (peer: Peer<SendableMessage>): Promise<boolean> {
+    try {
+      const serverPublicKey = this._hiddenService.masterPublicKey
+      if (!serverPublicKey) {
+        return false
+      }
+
+      const nonce = this._createPacketId()
+      const challenge = await encryptHiddenPayload({ nonce }, serverPublicKey)
+      const [, response] = await this.send(peer, {
+        __ghostmeshInternal: 'server-reveal-request',
+        challenge
+      } satisfies ServerRevealRequestPacket as SendableMessage)
+
+      if (typeof response !== 'object' || response === null || !('__ghostmeshInternal' in response) || response.__ghostmeshInternal !== 'server-reveal-response') {
+        return false
+      }
+
+      const proof = response as ServerRevealResponsePacket
+      return proof.ok === true && proof.nonce === nonce
+    } catch {
+      return false
+    }
+  }
+
+  _createHiddenServiceForwardKey (packet: HiddenServiceRequestPacket): string {
+    return `${packet.service}:${packet.requestId}:${packet.nonce}`
+  }
+
+  async _createHiddenServiceErrorResponse (
+    packet: HiddenServiceRequestPacket,
+    message: string
+  ): Promise<HiddenServiceResponsePacket> {
+    return this._padHiddenServicePacket({
+      __ghostmeshInternal: 'hidden-service-response',
+      service: packet.service,
+      requestId: packet.requestId,
+      nonce: packet.nonce,
+      body: await encryptHiddenPayload({
+        __ghostmeshInternal: 'hidden-service-error',
+        code: 'duplicate-request',
+        message
+      } satisfies HiddenServiceErrorPayload, packet.clientPublicKey),
+      realHops: 0,
+      simulatedHops: 0,
+      delayedMs: 0
+    } satisfies HiddenServiceResponsePacket, this._hiddenService.fixedPacketBytes)
   }
 
   _padHiddenServicePacket<T extends HiddenServicePacket> (packet: T, fixedPacketBytes?: number): T {

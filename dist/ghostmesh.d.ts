@@ -24,6 +24,7 @@ export interface Peer<SendableMessage = unknown> {
     channelName: string;
     connected?: boolean;
     respond(msg: SendableMessage): Promise<ResponsePayload>;
+    isServer(): Promise<boolean>;
     on(event: string, listener: (...args: any[]) => void): void;
     send(data: string): void;
     destroy(): void;
@@ -62,6 +63,7 @@ export interface HiddenServiceOptions {
     masterPeerId?: string;
     services?: Record<string, string>;
     masterPublicKey?: KeyMaterial;
+    revealServer?: boolean;
     minHops?: number;
     through?: string[];
     responseDelayMs?: [number, number];
@@ -191,6 +193,9 @@ interface PendingRequest {
     reject: ResponseRejector;
     timeoutId?: ReturnType<typeof setTimeout>;
 }
+interface ForwardedHiddenServiceRequest {
+    timeoutId: ReturnType<typeof setTimeout>;
+}
 interface RoutedPeer extends Peer<any> {
     routeInfo: OnionRouteInfo;
 }
@@ -237,6 +242,15 @@ interface HiddenServiceResponsePacket {
     simulatedHops: number;
     delayedMs: number;
     padding?: string;
+}
+interface HiddenServiceErrorPayload {
+    __ghostmeshInternal: 'hidden-service-error';
+    code: 'duplicate-request';
+    message: string;
+}
+interface ServerRevealRequestPacket {
+    __ghostmeshInternal: 'server-reveal-request';
+    challenge: HiddenServiceCiphertext;
 }
 type HiddenServicePacket = HiddenServiceRequestPacket | HiddenServiceResponsePacket;
 type InternalMessage = FileTransferPacket | RoutedPacket | HiddenServicePacket;
@@ -304,6 +318,7 @@ export default class GhostMesh<SendableMessage = any> extends EventEmitter {
     msgChunks: Record<string, string[]>;
     responseWaiting: Record<string, Record<string, ResponseResolver>>;
     pendingRequests: Record<string, PendingRequest>;
+    forwardedHiddenServiceRequests: Record<string, ForwardedHiddenServiceRequest>;
     incomingFiles: Record<string, IncomingFileTransferState>;
     outgoingFiles: Record<string, FileSession>;
     identifierString?: string;
@@ -432,17 +447,24 @@ export default class GhostMesh<SendableMessage = any> extends EventEmitter {
     _isRoutedPacket(msg: unknown): msg is RoutedPacket;
     _isHiddenServiceRequestPacket(msg: unknown): msg is HiddenServiceRequestPacket;
     _isHiddenServiceResponsePacket(msg: unknown): msg is HiddenServiceResponsePacket;
+    _isServerRevealRequestPacket(msg: unknown): msg is ServerRevealRequestPacket;
+    _isHiddenServiceErrorPayload(msg: unknown): msg is HiddenServiceErrorPayload;
     _handleOnionPacket(peer: Peer<SendableMessage>, packet: OnionPacket): void;
     _handleRoutedPacket(peer: Peer<SendableMessage>, packet: RoutedPacket): void;
     _handleHiddenServiceRequest(peer: Peer<SendableMessage>, packet: HiddenServiceRequestPacket): Promise<void>;
+    _handleServerRevealRequest(peer: Peer<SendableMessage>, packet: ServerRevealRequestPacket): Promise<void>;
     _handleFileTransferPacket(peer: Peer<SendableMessage>, packet: FileTransferPacket): void;
     _resolveOnionRoute(targetPeerId: string, options: OnionRouteOptions): string[];
     _createRoutedPayload(type: RoutedPacket['__ghostmeshInternal'], msg: unknown, options: Omit<RoutedRequestPacket, '__ghostmeshInternal' | 'msg' | 'o'> | Omit<RoutedResponsePacket, '__ghostmeshInternal' | 'msg' | 'o'>): RoutedPacket;
     _createRoutedPeer(peer: Peer<SendableMessage>, originPeerId: string, circuitId: string, replyRoute?: string[], requestId?: string): RoutedPeer;
     _pickRandomOnionHops(targetPeerId: string, hops: number): string[];
+    _decoratePeer(peer: Peer<SendableMessage>): void;
     _createOnionPacket(route: string[], msg: OnionMessage | InternalMessage, circuitId: string, ttl?: number): OnionPacket;
     _sendViaRoute(route: string[], msg: OnionMessage | InternalMessage, circuitId: string, ttl?: number, useBackpressure?: boolean): Promise<void>;
     _createPacketId(): string;
+    _peerIsServer(peer: Peer<SendableMessage>): Promise<boolean>;
+    _createHiddenServiceForwardKey(packet: HiddenServiceRequestPacket): string;
+    _createHiddenServiceErrorResponse(packet: HiddenServiceRequestPacket, message: string): Promise<HiddenServiceResponsePacket>;
     _padHiddenServicePacket<T extends HiddenServicePacket>(packet: T, fixedPacketBytes?: number): T;
     _shapeHiddenServiceResponse(packet: HiddenServiceResponsePacket, route: string[], requestedHops: number, startedAt: number): Promise<HiddenServiceResponsePacket>;
     _bytesToBase64(bytes: Uint8Array): string;

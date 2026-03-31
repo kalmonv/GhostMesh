@@ -70,6 +70,21 @@ Try the interactive multi-peer chat and file transfer demo on CodePen:
 
 * [GhostMesh Demo on CodePen](https://codepen.io/kalmonv/pen/GgjQzga)
 
+## More Resources
+
+Additional documentation:
+
+* [docs/README.md](/home/kalmon/Projetos/GhostMesh/docs/README.md)
+* [docs/network-models.md](/home/kalmon/Projetos/GhostMesh/docs/network-models.md)
+* [docs/README-keys.md](/home/kalmon/Projetos/GhostMesh/docs/README-keys.md)
+* [docs/api-docs.md](/home/kalmon/Projetos/GhostMesh/docs/api-docs.md)
+
+JavaScript examples:
+
+* [exemplos/server.js](/home/kalmon/Projetos/GhostMesh/exemplos/server.js) - hidden-service server example
+* [exemplos/cliente.js](/home/kalmon/Projetos/GhostMesh/exemplos/cliente.js) - hidden-service client example
+* [exemplos/open-chat.js](/home/kalmon/Projetos/GhostMesh/exemplos/open-chat.js) - open chat example
+
 ## Quick Start
 
 ```ts
@@ -354,13 +369,13 @@ The goal is:
 gmesh.setOptions({
   identity: {
     role: 'client',
-    publicKey: CLIENT_PUBLIC_KEY_PEM,
-    privateKey: CLIENT_PRIVATE_KEY_PEM
+    publicKey: CLIENT_PUBLIC_KEY_PEM
   },
   hiddenService: {
     serviceName: 'directory',
     entryPeers: ['entry-peer-id-1', 'entry-peer-id-2'],
     masterPublicKey: MASTER_PUBLIC_KEY_PEM,
+    revealServer: false,
     minHops: 3,
     responseDelayMs: [1000, 5000],
     fixedPacketBytes: 4096
@@ -403,6 +418,41 @@ gmesh.setOptions({
 ```
 
 When the route to the master is shorter than `minHops`, the entry peer keeps the response for a random delay inside `responseDelayMs` so a short path looks less obvious.
+
+### Optional server discovery
+
+By default, a hidden-service server does not reveal itself to discovery probes.
+
+If you want a server to prove that it is the configured master, enable:
+
+```ts
+gmesh.setOptions({
+  identity: {
+    role: 'master',
+    privateKey: MASTER_PRIVATE_KEY_PEM
+  },
+  hiddenService: {
+    role: 'master',
+    serviceName: 'directory',
+    revealServer: true
+  }
+})
+```
+
+Then a peer can check:
+
+```ts
+const isServer = await peer.isServer()
+console.log(isServer)
+```
+
+`peer.isServer()` only returns `true` when:
+
+* `hiddenService.masterPublicKey` is configured on the caller
+* the remote peer has `revealServer: true`
+* the remote peer proves possession of the matching private key
+
+If `revealServer` is left as `false` (the default), `peer.isServer()` returns `false`, while the hidden-service server can still answer requests without announcing itself.
 
 ### Master setup
 
@@ -582,13 +632,3 @@ After that, jsDelivr can serve:
 More API detail is available in:
 
 * [api-docs.md](https://github.com/kalmonv/GhostMesh/blob/main/api-docs.md)
-
-## Projects Built With P2PT / GhostMesh
-
-* [P2Wiki](//github.com/subins2000/p2wiki)
-* [P2Chat](//github.com/subins2000/p2chat)
-* [Vett](//github.com/subins2000/vett)
-* [WebDrop](//github.com/subins2000/WebDrop)
-* [Board-IO](//github.com/elvistony/board-io)
-* [Rock Paper Scissor](https://github.com/prinzpiuz/Stone-Paper-Scissor)
-* [Vaportrade](//github.com/arilotter/vaportrade)
