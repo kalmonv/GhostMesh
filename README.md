@@ -74,16 +74,16 @@ Try the interactive multi-peer chat and file transfer demo on CodePen:
 
 Additional documentation:
 
-* [docs/README.md](/home/kalmon/Projetos/GhostMesh/docs/README.md)
-* [docs/network-models.md](/home/kalmon/Projetos/GhostMesh/docs/network-models.md)
-* [docs/README-keys.md](/home/kalmon/Projetos/GhostMesh/docs/README-keys.md)
-* [docs/api-docs.md](/home/kalmon/Projetos/GhostMesh/docs/api-docs.md)
+* [docs/README.md](./docs/README.md)
+* [docs/network-models.md](./docs/network-models.md)
+* [docs/README-keys.md](./docs/README-keys.md)
+* [docs/api-docs.md](./docs/api-docs.md)
 
 JavaScript examples:
 
-* [exemplos/server.js](/home/kalmon/Projetos/GhostMesh/exemplos/server.js) - hidden-service server example
-* [exemplos/cliente.js](/home/kalmon/Projetos/GhostMesh/exemplos/cliente.js) - hidden-service client example
-* [exemplos/open-chat.js](/home/kalmon/Projetos/GhostMesh/exemplos/open-chat.js) - open chat example
+* [server example](./exemplos/server.js) - hidden-service server example
+* [client example](./exemplos/cliente.js) - hidden-service client example
+* [open chat example](./exemplos/open-chat.js) - open chat example
 
 ## Quick Start
 
@@ -564,8 +564,8 @@ const gmesh = new GhostMesh(trackers, 'my-chat-room')
 
 This repository includes a browser demo in:
 
-* [index.html](/home/kalmon/Projetos/P2PT/index.html)
-* [example.js](/home/kalmon/Projetos/P2PT/example.js)
+* [index.html](./index.html)
+* [example.js](./example.js)
 
 The demo supports:
 
@@ -631,4 +631,4 @@ After that, jsDelivr can serve:
 
 More API detail is available in:
 
-* [api-docs.md](https://github.com/kalmonv/GhostMesh/blob/main/api-docs.md)
+* [docs/api-docs.md](./docs/api-docs.md)
